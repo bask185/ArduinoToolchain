@@ -14,9 +14,8 @@ def getStateMachines() : # function tested!
 
     for file in Files:
         if i % 2 == 0:
-            string.append(file[:-2])
+            string.append(file[:-4])
         i += 1
-    print(string)
     return string
 
 
@@ -32,39 +31,57 @@ stateMachines = getStateMachines()
 
 
 
-with open(folder + "/main.c", "w") as main:             #main.c
+with open(folder + "/" + folder + ".ino", "w") as main:             #main.c
     main.write('#include "scheduler.h"\n')
     #main.write('#include " .h"\n') #fill in custom libraries
     #main.write('#include " .h"\n')    
     
     for machine in stateMachines:
-        main.write('#include "' + machine + '.h"\n')
+        main.write('#include "' + machine + '.h"\n\n\n')
         
-    main.write("\nvoid init() {\n\t")
-    main.write("schedulerInit();\n\t")
-    for machine in stateMachines:
-        main.write(machine + "Init();\n\t")
-    main.write("}\n\n")
 
-    main.write("void main(){\n\t")
-    main.write("init();\n\n\t")
-    main.write("byte PIGS_CAN_FLY = true;\n\t")
-    main.write("while(PIGS_CAN_FLY == true) {\n\t\t")
-    main.write("readSerialBus();\n\t\t")
-    main.write("refreshP6P7();\n\t\t")
-    main.write("processRoundRobinTasks();\n\n\t\t")
+    main.write("void setup() {\n")
+    main.write("\tschedulerInit();\n")
+    main.write("}\n\n")
+    main.write("void loop() {\n")
+    main.write("\treadSerialBus();\n")
+    main.write("\tprocessRoundRobinTasks();\n\n")
     
     for machine in stateMachines:
-        main.write(machine + "();\n\t\t")
-    main.write("}\n}")
+        main.write("\t" + machine + "();\n")
+    main.write("}")
 
 
 
-    #with open(folder + "/scheduler.c", "w") as scheduler:  #scheduler.c 
-       # scheduler.write("extern void schedulerInit() {\n\t")
-       # scheduler.write("/* code for starting timer */ \n}\n\n")
+    with open(folder + "/scheduler.c", "w") as scheduler:  #scheduler.c 
+        scheduler.write("extern void schedulerInit() {\n\t")
+        scheduler.write("/* code for starting timer */ \n}\n\n")
 
-       # schedulder.write("ISR(TIMER2_OVF_vect) {") {
+       	for machine in stateMachines:
+            scheduler.write("uint8 " + machine + "T;\n")
+
+        scheduler.write("""ISR(TIMER2_OVF_vect) {
+	static uint8 _1ms, _10ms, _100ms;
+	_ms += 1;
+	//	add 1ms timers here
+
+	if(!(_1ms % 10)) { // if 10ms passed
+		_1ms = 0;
+		_10ms += 1;
+		// add 10ms timers
+
+	if(!(_10ms % 10)) { // if 100ms passed
+		_10ms = 0;
+		_100ms += 1;
+		// add 100ms timers
+
+	if(!(_100ms % 10)) { // if 1000ms passed
+		_100ms = 0;
+		// add 100ms timers
+
+
+} } }""")
+    scheduler.close()
 
 
 

@@ -49,14 +49,19 @@ for state in states1:
 f.close()
 #print(states)
 
-new_file_name = file_name.split('.')
+new_file_name = file_name.split('/')
+
+new_file_name = new_file_name[1].split('.')
+#new_file_name = new_file_name[1]
+
 new_file_name = new_file_name[0]
+print(new_file_name)
 
 if smType == "main":
     folder = "mainStateMachines/"
 else:
-    folder = "subStateMachines/"
-
+    folder = "nestedStateMachines/"
+#        folder + 
 with open(folder + new_file_name + ".cpp", "w") as c:
     
     c.write('#include "' + new_file_name + '.h"\n')
@@ -91,9 +96,16 @@ with open(folder + new_file_name + ".cpp", "w") as c:
         
     c.write("#undef State\n\n")
     c.write("#define State(x) break; case x: if(x##F())")    
-    c.write("\nextern bool " + new_file_name + "(void) {\n")
+    if smType == "nested":
+        c.write("\nextern bool " + new_file_name + "(void) {\n")
+    else:
+        c.write("\nextern void " + new_file_name + "(void) {\n")
     c.write("\tif(enabled) switch(state){\n")
-    c.write("\t\tdefault: case " + new_file_name + "IDLE: return true;\n\n")
+    c.write("\t\tdefault: case " + new_file_name + "IDLE: return")
+    if smType == "nested": 
+        c.write("true;\n\n")
+    else:
+        c.write(";\n\n")
     i = -1
     for state in states:
         i = i + 1
@@ -107,23 +119,24 @@ with open(folder + new_file_name + ".cpp", "w") as c:
             c.write("\n\t\t\tnextState(" + new_file_name + "IDLE, 0);")
         c.write(" }\n\n")
     c.write("\t\tbreak;}\n")
-    c.write("\telse if(!" + new_file_name + "T) enabled = true;\n")
-    c.write("\treturn false;}\n")
+    c.write("\telse if(!" + new_file_name + "T) enabled = true;")
+    if smType == "nested":
+        c.write("\n\treturn false;}\n")
+    else:
+        c.write(" }\n")
     c.write("#undef State")
 
     c.write("\n\nstatic void nextState(uint8 _state, uint8 _interval) {\n")
-    c.write("\tstate = _state;\n")
+    c.write("\trunOnce = true;\n")
     c.write("\texit = false;\n")
-    c.write("\t" + new_file_name + "T = _interval;\n")
-    c.write("\tif(_interval) enabled = false;\n")
-    c.write("\trunOnce = true; }")
-    
+    c.write("\tif(_interval) {\n")
+    c.write("\t\tenabled = false;\n")
+    c.write("\t\t" + new_file_name + "T = _interval; } \n")
+    c.write("\tstate = _state; }\n")
 
 
 
 with open(folder + new_file_name + ".h", "w") as h:
-    h.write('#include "BIM/types.h"\n\n')
-
     if smType == "nested":
         h.write("#ifndef " + new_file_name + "T\n")
         h.write("#error " + new_file_name + "T is not defined, define this as the parent's timer\n")
@@ -137,7 +150,10 @@ with open(folder + new_file_name + ".h", "w") as h:
     h.write(" };\n\n")
     
     h.write("static void nextState(uint8, uint8);\n")
-    h.write("extern bool " + new_file_name + "(void); // nested state machines must resturn a '1' to signal that they are ready\n")            # function call to the state machine
+    if smType == "nested":
+        h.write("extern bool " + new_file_name + "(void); // nested state machines must resturn a '1' to signal that they are ready\n")            # function call to the state machine
+    else:
+        h.write("extern void " + new_file_name + "(void); \n")
     h.write("extern void " + new_file_name + "Stop(void);\n")     # stop
     h.write("extern void " + new_file_name + "SetState(uint8);\n")
     h.write("extern uint8 " + new_file_name + "GetState(void);\n") # get currentState
