@@ -59,7 +59,7 @@ with open(folder + "/" + folder + ".ino", "w") as main:             #main.c
     main.write("\tschedulerInit();\n")
     main.write("}\n\n")
     main.write("void loop() {\n")
-    main.write("\treadSerialBus();\n")
+    main.write("\t// readSerialBus();\n")
     main.write("\tprocessRoundRobinTasks();\n\n")
     
     for machine in stateMachines:
@@ -69,6 +69,8 @@ with open(folder + "/" + folder + ".ino", "w") as main:             #main.c
 
 
     with open(folder + "/scheduler.cpp", "w") as scheduler:  #scheduler.c 
+        scheduler.write("#include <Arduino.h>\n")
+        scheduler.write('#include "scheduler.h"\n\n')
         scheduler.write("extern void schedulerInit() {\n\t")
         scheduler.write("/* code for starting timer */ \n}\n\n")
         scheduler.write("// timer declarations, don't forget to declare them extern in the .h file as well\n")
@@ -78,7 +80,7 @@ with open(folder + "/" + folder + ".ino", "w") as main:             #main.c
         scheduler.write("""
 ISR(TIMER2_OVF_vect) {
 static unsigned char _1ms, _10ms, _100ms; // please don't complain about the indentations, and just add your timers. Thank you.
-	_ms += 1;
+	_1ms += 1;
 	// add 1ms timers here
 	
 
@@ -120,8 +122,8 @@ with open(folder + "/roundRobinTasks.cpp", "w") as rr:
 #include "io.h"
 #define nTasks 2
 
-extern void roundRobinTasks(void) {
-	static uint8 taskCounter = 0;
+extern void processRoundRobinTasks(void) {
+	static unsigned char taskCounter = 0;
 	if(++taskCounter == nTasks) taskCounter = 0;
 
 	switch(taskCounter) {
@@ -138,7 +140,7 @@ extern void roundRobinTasks(void) {
 
 
 with open(folder + "/roundRobinTasks.h", "w") as rr:
-    rr.write("void roundRobinTasks();\n")
+    rr.write("void processRoundRobinTasks();\n")
     rr.close()
 
 with open(folder + "/io.h", "w") as rr:

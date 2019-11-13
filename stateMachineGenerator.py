@@ -90,20 +90,20 @@ with open(folder + new_file_name + ".cpp", "w") as c:
 
     c.write("#define entryState if(runOnce) \n")
     c.write("#define onState runOnce = false; if(!runOnce)\n")
-    c.write("#define exitState if(!exit) return false; else\n\n")
+    c.write("#define exitState if(!exitFlag) return false; else\n\n")
     
-    c.write("static uint8 state = " + new_file_name + "IDLE;\n")
-    c.write("static bool enabled, runOnce, exit;\n\n")
+    c.write("static unsigned char state = " + new_file_name + "IDLE;\n")
+    c.write("static bool enabled, runOnce, exitFlag;\n\n")
             
     c.write("extern void " + new_file_name + "Stop(void) {\n")     # stop
     c.write("\tstate = " + new_file_name + "IDLE; }\n\n")
             
-    c.write("extern void " + new_file_name + "SetState(uint8 _state) {\n") # get currentState
+    c.write("extern void " + new_file_name + "SetState(unsigned char _state) {\n") # get currentState
     c.write("\tstate = _state;\n")
     c.write("\trunOnce = true;\n")
     c.write("\tenabled = true;}\n\n")
 
-    c.write("extern uint8 " + new_file_name + "GetState(void) {\n") # get currentState
+    c.write("extern unsigned char " + new_file_name + "GetState(void) {\n") # get currentState
     c.write("\treturn state;}\n\n\n\n")
 
     
@@ -111,8 +111,9 @@ with open(folder + new_file_name + ".cpp", "w") as c:
     for state in states:    # print all state functions
         c.write("\nState(" + state + ") {\n") 
         c.write("\tentryState{\n\t\t\n\t")
-        c.write("}\n\tonState{\n\n\t\texit = true; }\n\t")
-        c.write("return true; } }\n\n")
+        c.write("}\n\tonState{\n\n\t\texitFlag = true; }\n")
+        c.write("\texitState {\n\t")
+        c.write("\treturn true; } }\n\n")
         
     c.write("#undef State\n\n")
     c.write("#define State(x) break; case x: if(x##F())")    
@@ -146,9 +147,9 @@ with open(folder + new_file_name + ".cpp", "w") as c:
         c.write(" }\n")
     c.write("#undef State")
 
-    c.write("\n\nstatic void nextState(uint8 _state, uint8 _interval) {\n")
+    c.write("\n\nstatic void nextState(unsigned char _state, unsigned char _interval) {\n")
     c.write("\trunOnce = true;\n")
-    c.write("\texit = false;\n")
+    c.write("\texitFlag = false;\n")
     c.write("\tif(_interval) {\n")
     c.write("\t\tenabled = false;\n")
     c.write("\t\t" + new_file_name + "T = _interval; } \n")
@@ -169,12 +170,12 @@ with open(folder + new_file_name + ".h", "w") as h:
         h.write(",\n\t"+ state)
     h.write(" };\n\n")
     
-    h.write("static void nextState(uint8, uint8);\n")
+    h.write("static void nextState(unsigned char, unsigned char);\n")
     if smType == "nested":
         h.write("extern bool " + new_file_name + "(void); // nested state machines must resturn a '1' to signal that they are ready\n")            # function call to the state machine
     else:
         h.write("extern void " + new_file_name + "(void); \n")
     h.write("extern void " + new_file_name + "Stop(void);\n")     # stop
-    h.write("extern void " + new_file_name + "SetState(uint8);\n")
-    h.write("extern uint8 " + new_file_name + "GetState(void);\n") # get currentState
+    h.write("extern void " + new_file_name + "SetState(unsigned char);\n")
+    h.write("extern unsigned char " + new_file_name + "GetState(void);\n") # get currentState
     h.close()
