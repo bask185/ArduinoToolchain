@@ -1,6 +1,31 @@
 #!/usr/bin/python 
 import sys
 import xml
+import os
+
+def getStateMachines() : # function tested!
+    Files = []
+
+    for root, dirs, fileList in os.walk(".", topdown=False):
+        if root == ".\yEd_stateMachines" :
+            Files = fileList
+            
+    i = 0
+    string = []
+
+    for file in Files:
+        if i % 2 == 0:
+            string.append(file)
+        i += 1
+    return string
+
+stateDiagrams = getStateMachines()
+
+for index, diagram in enumerate(stateDiagrams):
+    print("{} = {}".format(index, diagram))
+retValue = input("select state machine\n")
+file_name = stateDiagrams[int(retValue)]
+
 
 
 arrowsOut1 = []
@@ -10,7 +35,7 @@ arrowsIn = []
 states1 = []
 states = []
 
-file_name = sys.argv[1]
+#file_name = sys.argv[1]
 #language = sys.argv[2] # 'c' or 'assembly'
 
 
@@ -20,7 +45,7 @@ while smType != "main" and smType != "nested":
     smType = input()
 print(smType + " type selected")
 
-with open(file_name, "r") as f:
+with open("yEd_stateMachines/" + file_name, "r") as f:
     data = f.readlines()
 
 for line in data: #states
@@ -47,15 +72,10 @@ for state in states1:
     #print(arrowIn)
 
 f.close()
-#print(states)
 
-new_file_name = file_name.split('/')
 
-new_file_name = new_file_name[1].split('.')
-#new_file_name = new_file_name[1]
+new_file_name = file_name[:-8]
 
-new_file_name = new_file_name[0]
-print(new_file_name)
 
 if smType == "main":
     folder = "mainStateMachines/"
@@ -63,10 +83,10 @@ else:
     folder = "nestedStateMachines/"
 #        folder + 
 with open(folder + new_file_name + ".cpp", "w") as c:
-    
+    c.write('#include <Arduino.h>\n')
     c.write('#include "' + new_file_name + '.h"\n')
-    c.write('#include "BIM/scheduler.h"\n')
-    c.write('#include "BIM/io.h"\n\n')
+    c.write('#include "scheduler.h"\n')
+    c.write('#include "io.h"\n\n')
 
     c.write("#define entryState if(runOnce) \n")
     c.write("#define onState runOnce = false; if(!runOnce)\n")
