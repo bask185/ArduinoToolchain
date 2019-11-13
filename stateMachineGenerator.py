@@ -104,7 +104,7 @@ with open(folder + new_file_name + ".cpp", "w") as c:
     c.write("\tenabled = true;}\n\n")
 
     c.write("extern uint8 " + new_file_name + "GetState(void) {\n") # get currentState
-    c.write("\treturn state;}\n\n")
+    c.write("\treturn state;}\n\n\n\n")
 
     
     c.write("#define State(x) static bool x##F(void)")
