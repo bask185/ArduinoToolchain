@@ -79,7 +79,7 @@ with open(folder + "/" + folder + ".ino", "w") as main:             #main.c
 
         scheduler.write("""
 ISR(TIMER2_OVF_vect) {
-static unsigned char _1ms, _10ms, _100ms; // please don't complain about the indentations, and just add your timers. Thank you.
+static unsigned char _1ms, _10ms, _100ms; // Don't complain about the indentations and add your timers. Thank you.
 	_1ms += 1;
 	// add 1ms timers here
 	
@@ -96,7 +96,7 @@ if(!(_10ms % 10)) { // if 100ms passed
 	// add 100ms timers\n""")
         for machine in stateMachines:
             scheduler.write("\tif(" + machine + "T) " + machine +"T--;\n")
-        scheduler.write("""\n
+        scheduler.write("""\t\n
 if(!(_100ms % 10)) { // if 1000ms passed
 	_100ms = 0;
 	// add 1000ms timers
