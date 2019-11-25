@@ -1,3 +1,8 @@
+pre {
+  -moz-tab-size: 4;
+  tab-size: 4;
+}
+
 # State Machine Scripts & project assembly
 The purpose of this github page is to provide you with the tools and explanations to set up a fully compile-able arduino folder complete with state machines structures, software timers, debounced button reading and other supplemental modules. Though it is ment for somewhat more experienced programmers I welcome new commers to try this out.
 
