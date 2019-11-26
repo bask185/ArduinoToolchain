@@ -9,13 +9,15 @@ def getStateMachines() : # function tested!
     for root, dirs, fileList in os.walk(".", topdown=False):
         if root == ".\yEd_stateMachines" :
             Files = fileList
-            
+
+   
     i = 0
     string = []
 
     for file in Files:
-        if i % 2 == 0:
-            string.append(file)
+        #if i % 2 == 0:
+        string.append(file)
+        print(file)
         i += 1
     return string
 
