@@ -56,7 +56,19 @@ This is were all our new SW projects begin. We write down the basic operation in
 
 The state diagrams are needed for the code generation. yEd stores the diagrams in a .graphml in ascii format which will feed a python script to generate all state machine skeletons. This action is done once. When states are to be removed or added, that has to be done manually. It remains of great importance that you keep updating the diagram. It is even better to first modify the diagram before you modify the SW.
 
-This will greatly increase the effectiveness of maintaining and altering SW.
+This will greatly increase the effectiveness of maintaining and altering SW. I will show 2 examples state diagrams of a machine before I started and when I was finished. This particular machine was written in Assembly. Yet the basic principles remained the same.
+
+These are 2 main state machines for 2 rim (un)loading arms which run parallel.
+
+If you look in detail you'll see that the first draught came close to the end diagram
+
+![Pons1](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/pons1.png)
+![pons2](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/pons2.png)
+
+During code writing, the SMs became more and more complex. There were like 6 or 7 versions. These were not used for the generation part which was not yet finished at the time (yes I can also generate assembly code for work). That is why I have drawn 2 main state machines and a supplementing one on a single document.
+
+Even though this was in assembly it remained extremely easy to make every alteration. The sphere diagrams were an indespensible tool for developing the state machines. And the state machine structure as I developed proved very effective and dynamic.
+
 
 It is important to remember that these state diagrams are kept as simple and orderly as possible. The reasons or state-transition-condtions which control the flow of the state machine should not be drawn in the state diagram because of these reasons:
 - After the code is generated, the state diagram will act primarly as a reading guide. Therefor we should not add too much information
@@ -65,6 +77,14 @@ It is important to remember that these state diagrams are kept as simple and ord
 - It may be that the conditions are too complex to try to draw them in the diagram.
 
 Wheter all of these reasons are valid or not, if you add them all togather it would be illogical to try to draw the transition conditions.
+
+An example of a state machine followed by one nested state machine:
+![taper machine main SM](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/nestedSM.png)
+
+The following one is the 'stabilize' nested state machine which I call 'kraken' (element out of native language)
+![stabilize nested SM](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/kraken.png)
+
+The taping module is as almost as big as these 2 state machines togather. You can imagine how it would look like if it would be one single state machine. It would be rather big. Ofcourse with the sphere diagram you would still have no difficulty maintaining it, but to split some of the tasks into nested SMs the 'whole package' becomes much more clearer.
 
 There are a few rules which must be followed when creating the state diagram. 
 - The use of camelCase is mandatory. 
@@ -343,7 +363,7 @@ State(rollWheelOut) {
 ```
 WheelHandle contains 2 parallel state machines. Using the (generated) ...setState() function. I can let this single SM act if it is 2 seperate SMs. The advantages are that they use the same timer (the one of the parent) and all the code for handling the wheel lies in their own files in which we don't have to look in again. We have to scroll through less code in the important SM which increases maintainability.
 
-
+![handleWheel](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/handleWheel.png)
 
 # Round Robin tasks
 Most programs often have a need for certain functions which are to be called every program cycle. Think of reading the serial bus, polling an IO extender or checking an emergency switch. These functions are better known as round robin tasks. 
