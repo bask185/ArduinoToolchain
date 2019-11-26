@@ -385,12 +385,132 @@ Than you don't have to 'retype' the same function calls over and over again.
 
 
 # Modules
+Modules or libaries actually exist to make our life easier. With Arduino we depend on them. The LCD library, I2C and the default serial library are just a few of them. Ofcourse it may be desirable that for your projects you may want to make your own libraries. I am working on my own libraries (or modules how I like to call them as my SW is supposed to be modulair). I store all my modules in the module sub-folder which lies in the main folder.
 
+I perfer to keep your own separated libraries close to your project. You may want to use and modify them for a different uController platform. And they are every preserved in your sub folder (which you should have in git). I once put a library next to the arduino libraries and I lost it when I updated the Arduino SW.
+
+With every project you build the ammount of modules you make, will grow. I'll share some information about the modules I have created for arduino so far.
 
 ## Debouncing buttons
+This module does what is says. It handles the debouncing on buttons. It works with primarily with just 2 functions. The first function is called `updateButton()` and this handles the actual debouncing. The function is to be called as a low priority RR task and it works as follows:
+- With a SW timer samples of all buttons (and/or sensors) will be taken and the old samples will be safed.
+- If the new sample is a match with the old sample, the button state will take a new value. There are 4 different button states, RISING, FALLING, PRESSED or RELEASED.
+- Once a new state is approved, it will first be compared with the previous state. If the new Sample differs with the previous state, it means that the state is either RISING or FALLING depening on the new sample. Otherwise if the new state is the same as the previous state, the button state is either PRESSED or RELEASED depending on the new sample.
+
+The code of this function:
+```
+Button::unsigned char updateButton() {
+	static bool oldSample = false, statePrev = false;
+	bool newSample = digitalRead(pin);
+
+	if(newSample == oldSample) {	// if the same state is detected atleast twice in 20ms...
+	
+		if(newSample != statePrev) { // if a flank change occured return RISING or FALLING
+			statePrev = newSample;
+
+			if(newSample)	return RISING; 
+			else			return FALLING; }
+
+		else {						// or if there is no flank change return PRESSED or RELEASED
+			if(newSample)	return PRESSED; 
+			else			return RELEASED; } }
+
+	oldSample = newSample; }
+```
+If you want to read the state of a button, you can use the function `readButton()`. This function does do just 2 things
+- The function returns the current state of the button
+- If the state is RISING or FALLING the state will be set at RELEASED or PRESSED respectively.
+
+A RISING or FALLING state is only lasts for 20ms. If you call `readButton()` within this time, the function will return the FALLING or RISING state just one time. The read functions will set the state to PRESSED or RELEASED if you call it when the state is still RISING or FALLING. If you do not call `readButton()` within this time, the button state will be automatically set at PRESSED or RELEASED by `updateButton()`. Afteral a button state cannot be RISING or FALLING indefinately.
+
+The code:
+```
+Button::unsigned char readButton() {
+	byte retValue = state;
+
+	if(state == RISING) state = RELEASED; // take note I use a pull-up resistor hence RISING -> RELEASED
+	if(state == FALLING)state = PRESSED; // rising or falling may be returned just once
+
+	return retValue; }
+```
+
 
 
 ## I2C I/O extenders
+I am a great fan of the MCP23017 I2C extenders. I use them in almost every project. There are of course many libraries to be found to control these devices. But I have not yet found one which is as easy as my own module. 
 
+At work I worked a lot with the CAN bus to control slave devices. Entire protocols were in place to automatically update outputs as well as inputs. Therefor I wrote this library with the same idea. In SW I want to be able to type `outputX = 1` or `b = inputY`. I do not want to remember what is an I2C IO and what is an arduino IO (with the exception of PWM, analog and interrupt pins). The library uses one extern function which is to be called as a high priority RR task. The function will check first which output has changed, and sends the change over the I2C bus. Than the function will poll the inputs of the devices and update the master's input bytes.
 
+Another benefit is that this module used the IO files. The ammount of MCP23017 devices is dependend on the highest defined IO number. If the highest IO is 51, than the module knows it has 51 / 16 + 1 = 4 MCP23017 devices. 
 
+There is one condition which has to be met for this to work. The hardware addresses of the slaves must be incremented from 0x20 to 0x28 in ascending order.
+
+In short the benefits of this module are:
+- master SW knows how much mcp devices are present depening on the highest listed IO.
+- master SW automatically initializes (with init function) all MCP devices with the correct tri-state value for the IODIRx registers.
+- You can set an output as simple as: `someOutput = 1` or `someOtherOut = 0`.
+- You can read an input as simple as:`if(!someInput)` or `if(someInput == 1)`.
+- outputs, inputs and pullup_inputs may be next to eachother without problems
+- The module gets the neccesairy IO from the IO files.
+- You can simply use this library without having to controll the I2C bus directly.
+
+# I/O management
+
+# Software documentation
+All software is ever to be properly documentated. Especially the modules which have often dependencies to one another. The C/C++ header file system is IMO not the most prittiest solution I've seen. If you have many dependencies all the #include's can become messy. Therefor we need order in the form of documentation.
+
+For modules you want a:
+- general description
+- list of dependencies 
+- list of extern functions
+- list of extern variables
+- a usage guide. 
+
+This is an stripped example of a C work project:
+```
+/* Light handler
+
+Description:
+	this functions handles all lights for all machine types
+	There are 3 separate functions for different machine types of which one is compiled
+	The 3 types are currently classified as: 
+	* machines with orange lights
+	* machines with a stack light (including white light)
+	* machines with an orange and a blue light (HTC)
+
+Dependencies:
+	io.h
+	basicMachineFunctions.h
+	scheduler.h
+*/
+
+//extern functions:  
+extern void lightHandler();
+
+// extern variables:
+extern bit automaticEnabled;
+extern bit outOfRims;
+extern bit blink;
+extern bit testMode;
+
+/*usage:
+	The function Light handler can be called as low priority round robin task. It handles all lights for you
+	It has it's own timer in scheduler. 
+	The function needs startBool from basic functions to control the white light
+	It uses the airPressureSensor to control the red light
+	The automatic routine of the machine should set, "automaticEnabled" to turn on the green light
+	And by setting 'blink' the orange light will blink.
+	The flag testMode is used to burn the yellow light when the machine is in test testMode
+*/
+```
+To use extern or 'global' variables is often not needed and not recommended. They are slightly more susceptable for bugs. But regardless they can be handy. But this discussion does not belong to the scope of this chapter.
+
+If your module is written as a class, the formatting is already partially done for you. As the keywords `public` and `private` do some formatting for you. The general description as well as a usage explanation and dependencies remain the most important informatiob. Do not forget to add these in the header files. 
+
+Complicated functions for complicated calculations and complicated tasks can always use extra comments in the source files. Though modules are often designed to just to be used, they may need altering on a bad day. If you have written some complex code at your best moment of clarity you will find yourself falling short if you do not remember how your code works and you need to look for a bug. 
+
+I have written code to analize the spoke patterns of spoke bicycle wheels. It has become an extremely complex thing and it still needs more features. Thankfully almost every line has comment. Additionally I have written a local wiki page explaining the math behind the code. If others need to make alterations to this, than they can because I documentated it!
+
+It is always a general good idea to build your code as it were intended for others. So add comments where needed and keep the code nice and tidy.
+
+And if it was not clear yet. All state machines must every have a simple sphere diagram. This is an excellent reading guide.
