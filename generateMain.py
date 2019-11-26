@@ -120,13 +120,14 @@ with open(folder + "/roundRobinTasks.cpp", "w") as rr:
     rr.write("""
 #include "roundRobinTasks.h"
 #include "io.h"
-#define nTasks 2
 
 extern void processRoundRobinTasks(void) {
 	static unsigned char taskCounter = 0;
-	if(++taskCounter == nTasks) taskCounter = 0;
+	taskCounter ++;
 
 	switch(taskCounter) {
+		default: taskCounter = 0;
+
 		case 0:
 		/* fill in a task */
 		break;

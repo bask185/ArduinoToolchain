@@ -9,7 +9,7 @@ Button::unsigned char readButton() {
 	byte retValue = state;
 
 	if(state == RISING) state = RELEASED; // take note I use a pull-up resistor
-	if(state == FALLING)state = PRESSED; // rising or falling may be returned just once
+	if(state == FALLING)state = PRESSED;  // rising or falling may be returned only once
 
 	return retValue; }
 

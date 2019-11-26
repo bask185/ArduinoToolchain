@@ -110,8 +110,8 @@ with open(folder + new_file_name + ".cpp", "w") as c:
     c.write("#define State(x) static bool x##F(void)")
     for state in states:    # print all state functions
         c.write("\nState(" + state + ") {\n") 
-        c.write("\tentryState{\n\t\t\n\t")
-        c.write("}\n\tonState{\n\n\t\texitFlag = true; }\n")
+        c.write("\tentryState {\n\t\t\n\t")
+        c.write("}\n\tonState {\n\n\t\texitFlag = true; }\n")
         c.write("\texitState {\n\t")
         c.write("\treturn true; } }\n\n")
         

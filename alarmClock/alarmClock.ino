@@ -8,6 +8,7 @@
 
 void setup() {
 	schedulerInit();
+	alarmClockSetState(mainmenu);
 }
 
 void loop() {
