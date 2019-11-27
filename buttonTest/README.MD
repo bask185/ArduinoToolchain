@@ -2,6 +2,7 @@ In this example I will make a state machine of which every state tests the debou
 
 Because a button can have 4 different states, I'll make a state machine with 4 states. We will be using the serial monitor to display the button state as well tansitions between states.
 
+# Make an yEd state diagram
 The first step is to create a state diagram in yEd:
 
 ![alt txt](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/buttonTest.png)
@@ -222,7 +223,8 @@ State 'b' is almost identical to state 'a'. I only had to do 2 things. I had to 
 
 Now I welcome you to fill in the remaining two states yourself. You can also try to let one of the states print all 4 different button states. Or perhaps you can do something fancy with the onboard led.
 
-After you filled in the remaining 2 states, there are three more things you have to do.:
+# Last bits and pieces
+After you filled in the remaining 2 states, there are three more things you have to do:
 Firstly. The file roundRobinTasks needs to call the function updateButtons() as a low priority RR task. This function lies in IO.c and the IO.h is already #included. 
 
 N.B. this step will be obsolete in the future because we will be able to select which module we want to import. This we can do from out the 'generateMain' script. If the 'buttonClass' module is imported, 'updateButtons()' will be generated within the roundRobinTasks.
