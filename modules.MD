@@ -14,22 +14,22 @@ This module does what is says. It handles the debouncing on buttons. It works wi
 The code of this function:
 ```
 Button::unsigned char updateButton() {
-	static bool oldSample = false, statePrev = false;
-	bool newSample = digitalRead(pin);
+    static bool oldSample = false, statePrev = false;
+    bool newSample = digitalRead(pin);
 
-	if(newSample == oldSample) {	// if the same state is detected atleast twice in 20ms...
+    if(newSample == oldSample) {	// if the same state is detected atleast twice in 20ms...
 	
-		if(newSample != statePrev) { // if a flank change occured return RISING or FALLING
-			statePrev = newSample;
+        if(newSample != statePrev) { // if a flank change occured return RISING or FALLING
+            statePrev = newSample;
 
-			if(newSample)	return RISING; 
-			else			return FALLING; }
+            if(newSample)   return RISING; 
+            else            return FALLING; }
 
-		else {						// or if there is no flank change return PRESSED or RELEASED
-			if(newSample)	return PRESSED; 
-			else			return RELEASED; } }
+        else {						// or if there is no flank change return PRESSED or RELEASED
+            if(newSample)   return PRESSED; 
+            else            return RELEASED; } }
 
-	oldSample = newSample; }
+    oldSample = newSample; }
 ```
 If you want to read the state of a button, you can use the function `readButton()`. This function does do just 2 things
 - The function returns the current state of the button
@@ -40,12 +40,12 @@ A RISING or FALLING state is only lasts for 20ms. If you call `readButton()` wit
 The code:
 ```
 Button::unsigned char readButton() {
-	byte retValue = state;
+    byte retValue = state;
 
-	if(state == RISING) state = RELEASED; // take note I use a pull-up resistor hence RISING -> RELEASED
-	if(state == FALLING)state = PRESSED; // rising or falling may be returned just once
+    if(state == RISING) state = RELEASED; // take note I use a pull-up resistor hence RISING -> RELEASED
+    if(state == FALLING)state = PRESSED; // rising or falling may be returned just once
 
-	return retValue; }
+    return retValue; }
 ```
 
 
