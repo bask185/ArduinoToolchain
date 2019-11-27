@@ -1,6 +1,6 @@
-In this example I will make a state machine of four states of which every state tests the debouncing states of a button. The PRESSED and RELEASED states are only to be printed 5x per second. For the hardware you simple need an arduino with a switch.
+In this example I will make a state machine of which every state tests the debouncing states of a button. The PRESSED and RELEASED states are only to be printed 4x per second. For the hardware you simple need an arduino with a switch.
 
-Because a button can have 4 different states, I'll make a state machine with 4 states. We will be using with the serial monitor to display the button state as well switchs between states.
+Because a button can have 4 different states, I'll make a state machine with 4 states. We will be using the serial monitor to display the button state as well tansitions between states.
 
 The first step is to create a state diagram in yEd:
 
@@ -8,8 +8,8 @@ The first step is to create a state diagram in yEd:
 
 Note that every state can transisiton to every other state. That is why there are 2 arrows in both directions between 2 states.
 
-Than I run the python script 'stateMachineGenerator.py'.
-The output looks as follows:
+Once the state diagram is finished you can run the python script 'stateMachineGenerator.py'.
+The output of this script looks as follows:
 ```
 0 = alarmClock.graphml
 1 = buttonTest.graphml
@@ -20,8 +20,8 @@ Is this state machine a 'main' or 'nested' type state machine?
 main
 main type selected
 ```
-I am prompted to select a state machine from the list, then I am asked if it is a main state machine or a nested one.
-When the script is finished I need to run generateMain.py. This scripts prompts me of a name, creates the directory, generates the needed files and moves the whole to the new folder. The new folder is on the same level as the folder from which you build your projects. So if you put the state-machine-script folder in my documents, you should now have a new folder in my Documents. Mine is called buttonTest.
+You are prompted to select a state machine from the list, then you are asked if it is a main state machine or a nested one.
+When the script is finished you need to run generateMain.py. This scripts prompts you a name, creates the directory, generates the needed files and moves the whole to the new folder. The new folder is on the same level as the folder from which you build your projects. So if you put the state-machine-script folder in my documents, you should now have a new folder in my Documents. Mine is called buttonTest.
 
 Once the folder and files are assembled we only need to fill in the IO.tab files and generate the needed IO.h and IO.c files before we can start with the actual coding. 
 
@@ -36,8 +36,8 @@ I also added the well known led pin 13. Perhaps we can do something with it.
 From now on we only have to fill in the state machine and the states. To summarize the tasks:
 - each state needs to display a message over the serial bus upon entering the state
 - each state must display 1 out of 4 button states, depending on the state of the button
-- The PRESSED and RELEASED states are only to be printed 5x per second
-- Switching or transitioning between states can be done by sending a certain character (a,b,c,d) via the serial monitor
+- The PRESSED and RELEASED states are only to be printed 4x per second
+- Switching or transitioning between states can be done by sending a certain character ('a','b','c','d') via the serial monitor
 - When exiting a state the states must display another message
 - We want to wait 1 second before a new state is executed.
 
@@ -114,6 +114,7 @@ Now we fill in the code for the first state 'a'. The empty generated state looks
 ```
 State(a) {
 	entryState {
+	
 	}
 	onState {
 	
@@ -137,7 +138,9 @@ State(a) {
 		Serial.println(serialByte);
 		return true; } }
 ```
-When I exit the state I will also display to which state we are going to jumb, using the 'serialByte'. Ofcourse this state can not yet work before the onState is filled in. Lets first be able to properly exit the state. State a can switch to state b, c and d. Therefor we only need to listen for these 3 characters.
+When I exit the state I will also display to which state we are going to jumb, using the 'serialByte'. Ofcourse this state can not yet work before the onState is filled in. By default, the exitFlag is automatically set in the `onState`. In the event that you do not fill anything in in the `onState`the state will run once and exits. So even if you forget to fill in a state, the state machine will go on.
+
+Lets first be able to properly exit the state. State 'a' can switch to state 'b', 'c' or 'd'. Therefor we only need to listen for these 3 characters.
 ```
 State(a) {
 	entryState {
@@ -156,14 +159,14 @@ State(a) {
 		Serial.println(serialByte);
 		return true; } }
 ```
-I found the fall-through switch case quite simple. You may even want to put the 3 case behind one-another to save some space but you may upset your co-workers with it.
+I found the fall-through switch case quite elegant really. You may even want to put the 3 cases behind one-another to reduce some space but you may upset your co-workers with it.
 
 ```
 onState {
 	if(serialByte) switch(serialByte) {  // if is used to detect if there is a byte to be read in
 		default: break;		// any unknown byte will break out the switch case
 			
-		case 'b': case 'c':	case 'd': // be care full not to burn yourself by pissing off co-workers
+		case 'b': case 'c': case 'd': // be care full not to burn yourself by pissing off co-workers
 		exitFlag = true;	// the cases are used as a fall-through switch case. Any of these 3 chars will set the exitFlag
 		break; } }
 ```
@@ -172,7 +175,7 @@ Lastly we need to print read and print the button state. This can be done easily
 if(button.readButton() == RISING) Serial.println("RISING");
 ```
 
-With this line added, state 'a' is now finished. State 'a' looks as follows:
+With this line added, state 'a' is now finished. State 'a' now looks as follows:
 
 ```
 State(a) {
@@ -194,7 +197,7 @@ State(a) {
 ```
 The states which will display RISING and FALLING will only print this just one time. Reading a RISING or FALLING state will automatically set the state to RELEASED or PRESSED respectively. If the states which displays the PRESSED and FALLING states were written exactly like state 'a', the states would print the states as fast the the program runs. To have some delay between the printing actions we will use our generated and assigned timer called 'buttonTestT'. 
 
-When we implement the timer state 'b' will look as follows:
+When we implement the timer, state 'b' (which will print the PRESSED state) will look as follows:
 ```
 State(b) {  // changed a in b
 	entryState {
@@ -215,9 +218,9 @@ State(b) {  // changed a in b
 		Serial.println(serialByte);
 		return true; } }
 ```
-State 'b' is almost identical to state 'a'. I only that the 2 things to use the timer and swap out an 'a' for a 'b' at a few places.
+State 'b' is almost identical to state 'a'. I only had to do 2 things. I had to use the timer and swap out an 'a' for a 'b' at a few places.
 
-Now I welcome you to fill in the remaining two states yourself.
+Now I welcome you to fill in the remaining two states yourself. You can also try to let one of the states print all 4 different button states. Or perhaps you can do something fancy with the onboard led.
 
 After you filled in the remaining 2 states, there are three more things you have to do.:
 Firstly. The file roundRobinTasks needs to call the function updateButtons() as a low priority RR task. This function lies in IO.c and the IO.h is already #included. 
