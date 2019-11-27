@@ -140,17 +140,17 @@ Now I'll discuss all code of the state machine and the code arround the state ma
 ```
 #define State(x) break; case x: if(x##F())
 extern bit newWals(void) {
-	if(enabled) switch(state){
-		default: case newWalsIDLE: return true;
+if(enabled) switch(state){
+    default: case newWalsIDLE: return true;
 
-		State(powerOff) {
-			nextState(startPosition, 0); }
+    State(powerOff) {
+        nextState(startPosition, 0); }
 
-		State(startPosition) {
-			nextState(startMotor, 0); }
+    State(startPosition) {
+        nextState(startMotor, 0); }
 ...
 ...
-        break;}
+    break;}
     else if(!stateT) enabled = true;
     return false;}
 #undef State
