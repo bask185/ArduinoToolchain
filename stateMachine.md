@@ -67,15 +67,15 @@ Also you can see macro's as library functions. If you need a library to use the 
 Macros are just a tool of the language just like functions are. You just have to use them right. The states I developed all look like:
 ```
 State(stateName) { // the state 
-	entryState {
-		
-	}
-	onState {
+    entryState {
 
-		exitFlag = true; }
-	exitState {
-		
-		return true; } }
+    }
+    onState {
+
+        exitFlag = true; }
+    exitState {
+
+        return true; } }
 ...
 ...
 State(someState) { // different macro for the state machine
@@ -87,22 +87,22 @@ Given the information that you are looking at a state of a state machine which i
 If we expand the macro's we would get:
 ```
 static bit someStateF(void)() {
-	if(runOnce) {
-		
-	}
-	runOnce = false;  
-	if(!runOnce) {
+    if(runOnce) {
 
-		exitFlag = true; }
-	if(!exitFlag) return false; 
-	else {
-		
-		return true; } }
+    }
+    runOnce = false;  
+    if(!runOnce) {
+
+        exitFlag = true; }
+    if(!exitFlag) return false; 
+    else {
+
+        return true; } }
 ...
 ...
 
 break; case someState: if(someStateF()) {
-	nextState(someOtherState, 0); }
+    nextState(someOtherState, 0); }
 ```
 You now see how the states or functions actually work. I believe that the macro method displays enough information in order to work with them. And it looks much more clear.
 
@@ -140,30 +140,30 @@ Now I'll discuss all code of the state machine and the code arround the state ma
 ```
 #define State(x) break; case x: if(x##F())
 extern bit newWals(void) {
-	if(enabled) switch(state){
-		default: case newWalsIDLE: return true;
+if(enabled) switch(state){
+    default: case newWalsIDLE: return true;
 
-		State(powerOff) {
-			nextState(startPosition, 0); }
+    State(powerOff) {
+        nextState(startPosition, 0); }
 
-		State(startPosition) {
-			nextState(startMotor, 0); }
+    State(startPosition) {
+        nextState(startMotor, 0); }
 ...
 ...
-		break;}
-	else if(!stateT) enabled = true;
-	return false;}
+    break;}
+    else if(!stateT) enabled = true;
+    return false;}
 #undef State
 ```
 This is the entire state machine function. In the first lines you notice a variable called 'enabled' and the default case which returns true. The enabled flag allows the state machine to run. It is used to allow for inter-state delays. It may be that you want to wait an x ammount of time between states. This delay (non-blocking) is set by filling in a value for the 2nd arguement of the following function. 
 
 ```
 static void nextState(unsigned char _state, unsigned char _interval) {
-	state = _state;
-	if(_interval) {
-  		stateT = _interval;
-		enabled = false; }
-	runOnce = true; }
+    state = _state;
+    if(_interval) {
+        stateT = _interval;
+        enabled = false; }
+    runOnce = true; }
 ```
 This function is called every time when a state is finished. The function handles the next state, 'runOnce' flag, 'exitFlag' flag and optionally the 'enabled' flag and the the state timer (stateT). How the enabled flag works, will be discussed in the software timer chapter.
 
@@ -182,22 +182,22 @@ _ms += 1;
 //	add 1ms timers here
 
 if(!(_1ms % 10)) { // if 10ms passed
-	_1ms = 0;
-	_10ms += 1;
-	// add 10ms timers
-	if(debounceT) debounceT -= 1;
+    _1ms = 0;
+    _10ms += 1;
+    // add 10ms timers
+    if(debounceT) debounceT -= 1;
 
 if(!(_10ms % 10)) { // if 100ms passed
-	_10ms = 0;
-	_100ms += 1;
-	// add 100ms timers
-	if(stateT) stateT -= 1;
+    _10ms = 0;
+    _100ms += 1;
+    // add 100ms timers
+    if(stateT) stateT -= 1;
 
 if(!(_100ms % 10)) { // if 1000ms passed
-	_100ms = 0;
-	// add 100ms timers
-	if(timerWith100msInterval) timerWith100msInterval -= 1;
-	if(anotherTimerWithaTooLongName) anotherTimerWithaTooLongName -= 1; // some dummy values to illustrate the use
+    _100ms = 0;
+    // add 100ms timers
+    if(timerWith100msInterval) timerWith100msInterval -= 1;
+    if(anotherTimerWithaTooLongName) anotherTimerWithaTooLongName -= 1; // some dummy values to illustrate the use
 
 }
 }
@@ -220,28 +220,28 @@ This incredibly simple method has proven to be quite dynamic and easy to use. A 
 A time out for a state can be needed depending on your use case. It can be realized as follows:
 ```
 State(swingArmOutside) {
-	entryState{
-		stateT = 200; // 2000ms delay
-		arm = 1; }	// we swing out an arm, and awaits it's sensor
-	onState{
-		if(sensor) {
-			// sensor is made on time
-			errorFlag = false;
-			exitFlag = true; } 
-		else if(!stateT) {
-			// time has expired
-			errorFlag = true;
-			exitFlag = true; } }
-	exitState{
-		// no action need
-		return true; } }
+    entryState{
+        stateT = 200; // 2000ms delay
+        arm = 1; }	// we swing out an arm, and awaits it's sensor
+    onState{
+        if(sensor) {
+            // sensor is made on time
+            errorFlag = false;
+            exitFlag = true; } 
+        else if(!stateT) {
+            // time has expired
+            errorFlag = true;
+            exitFlag = true; } }
+    exitState{
+        // no action need
+        return true; } }
 ```
 When this state is finished 'errorFlag' can be true or false. The state machine, which is now ready to pick a new state, may read this flag in order to determen which state it should select.
 ```
 ...
 State(swingArmOutside) {
-	if(errorFlag) 	nextState(ALARM,0);
-	else 		nextState(swingArmInside,0); }
+    if(errorFlag) 	nextState(ALARM,0);
+    else 		nextState(swingArmInside,0); }
 ...
 ```
 
@@ -249,15 +249,15 @@ State(swingArmOutside) {
 It may occur that you want a delay between the entry state and the on state. This can be easily achieffed as following:
 ```
 State(swingArmOutside) {
-	entryState{
-		stateT = 100; } // 1 second delay 
-	onState{
-		if(!stateT) { // time has expired
-			armOutside = 1;
-			exitFlag = true; } }
-	exitState{
-		// no action need
-		return true; } }
+    entryState{
+        stateT = 100; } // 1 second delay 
+    onState{
+        if(!stateT) { // time has expired
+            armOutside = 1;
+            exitFlag = true; } }
+    exitState{
+        // no action need
+        return true; } }
 ```
 
 ### The inter-state delay
@@ -266,11 +266,11 @@ My earlier SW relied heavily on delays between 2 following states. The machines 
 The inter-state delay is achieffed by setting a value in the 2nd arguement of nextState(). This arguement is defaulted to 0. By changing the 0 to something what is not 0 the function will do 2 things. 
 ```
 static void nextState(unsigned char _state, unsigned char _interval) {
-	state = _state;
-	if(_interval) {
-  		stateT = _interval;
-		enabled = false; }
-	runOnce = true; }
+    state = _state;
+    if(_interval) {
+        stateT = _interval;
+        enabled = false; }
+    runOnce = true; }
 ```
 
 When interval != 0, the enabled flag is set at 'false' and the interval value is loaded in the timer. This timer decrements until it reaches 0.
@@ -303,26 +303,26 @@ A nested state machine needs a one time initialisation and it's main function is
 This is for rolling a wheel in the machine
 ```
 State(rollWheelIn) {
-	entryState{
-		handleWheelSetState(rollIn); } // initialize the nested SM. The function is generated, rollIn is a state of the SM
-	onState{
-		if(handleWheel()) {
-			exitFlag = true; } }
-	exitState{
-		// no action need
-		return true; } }
+    entryState{
+        handleWheelSetState(rollIn); } // initialize the nested SM. The function is generated, rollIn is a state of the SM
+    onState{
+        if(handleWheel()) {
+            exitFlag = true; } }
+    exitState{
+        // no action need
+        return true; } }
 ```
 And for rolling out a wheel:
 ```
 State(rollWheelOut) {
-	entryState{
-		handleWheelSetState(rollOu); } // now we roll a wheel out
-	onState{
-		if(handleWheel()) { 	// same function call
-			exitFlag = true; } }
-	exitState{
-		// no action need
-		return true; } }
+    entryState{
+        handleWheelSetState(rollOu); } // now we roll a wheel out
+    onState{
+        if(handleWheel()) { 	// same function call
+            exitFlag = true; } }
+    exitState{
+        // no action need
+        return true; } }
 ```
 WheelHandle contains 2 parallel state machines. Using the (generated) ...setState() function. I can let this single SM act if it is 2 seperate SMs. The advantages are that they use the same timer (the one of the parent) and all the code for handling the wheel lies in their own files in which we don't have to look in again. We have to scroll through less code in the important SM which increases maintainability.
 
