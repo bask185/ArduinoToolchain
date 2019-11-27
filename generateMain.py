@@ -22,7 +22,7 @@ def getStateMachines() : # function tested!
 
 
 print("Type name of new project")
-folder = input()
+folder = "../" +input()
 try:
     os.makedirs(folder)
 except OSError:
@@ -43,9 +43,10 @@ for src_dir, dirs, files in os.walk(src):
 
 stateMachines = getStateMachines()
 
+folder2 = folder[2:]
+print(folder2)
 
-
-with open(folder + "/" + folder + ".ino", "w") as main:             #main.c
+with open(folder + "/" + folder2 + ".ino", "w") as main:             #main.c
     main.write('#include "scheduler.h"\n')
     main.write('#include "roundRobinTasks.h"\n')
     #main.write('#include " .h"\n') #fill in custom libraries
