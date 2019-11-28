@@ -43,7 +43,7 @@ From now on we only have to fill in the state machine and the states. To summari
 - We want to wait 1 second before a new state is executed.
 
 # Filling in the state machine.
-If a state can transition in more than 1 state (when 1 spehere has more than 1 outgoing arrow) we need to fill in the transition condition or 'flow' conditions. The generated SM looks as follows:
+If a state can transition in more than 1 state (when 1 sphere has more than 1 outgoing arrow) we need to fill in the transition condition or 'flow' conditions. The generated SM looks as follows:
 ```
 #define State(x) break; case x: if(x##F())
 extern void buttonTest(void) {
