@@ -66,55 +66,7 @@ with open(folder + "/" + folder2 + ".ino", "w") as main:             #main.c
     for machine in stateMachines:
         main.write("\t" + machine + "();\n")
     main.write("}")
-
-
-
-    with open(folder + "/scheduler.cpp", "w") as scheduler:  #scheduler.c 
-        scheduler.write("#include <Arduino.h>\n")
-        scheduler.write('#include "scheduler.h"\n\n')
-        scheduler.write("extern void schedulerInit() {\n\t")
-        scheduler.write("/* code for starting timer */ \n}\n\n")
-        scheduler.write("// timer declarations, don't forget to declare them extern in the .h file as well\n")
-       	for machine in stateMachines:
-            scheduler.write("unsigned char " + machine + "T;\n")
-
-        scheduler.write("""
-ISR(TIMER2_OVF_vect) {
-static unsigned char _1ms, _10ms, _100ms; // Don't complain about the indentations and add your timers. Thank you.
-	_1ms += 1;
-	// add 1ms timers here
-	
-
-if(!(_1ms % 10)) { // if 10ms passed
-	_1ms = 0;
-	_10ms += 1;
-	// add 10ms timers
-	
-
-if(!(_10ms % 10)) { // if 100ms passed
-	_10ms = 0;
-	_100ms += 1;
-	// add 100ms timers\n""")
-        for machine in stateMachines:
-            scheduler.write("\tif(" + machine + "T) " + machine +"T--;\n")
-        scheduler.write("""\t\n
-if(!(_100ms % 10)) { // if 1000ms passed
-	_100ms = 0;
-	// add 1000ms timers
-	
-
-}
-}
-}
-}""")
-    scheduler.close()
-
-
-with open(folder + "/scheduler.h", "w") as scheduler:  #scheduler.h
-    scheduler.write("extern void schedulerInit();\n\n")
-    for machine in stateMachines:
-        scheduler.write("extern unsigned char " + machine + "T;\n")
-    scheduler.close()
+    main.close()
 
 
 with open(folder + "/roundRobinTasks.cpp", "w") as rr:
