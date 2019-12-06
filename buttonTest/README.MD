@@ -43,35 +43,35 @@ From now on we only have to fill in the state machine and the states. To summari
 - We want to wait 1 second before a new state is executed.
 
 # Filling in the state machine.
-If a state can transition in more than 1 state (when 1 spehere has more than 1 outgoing arrow) we need to fill in the transition condition or 'flow' conditions. The generated SM looks as follows:
+If a state can transition in more than 1 state (when 1 sphere has more than 1 outgoing arrow) we need to fill in the transition condition or 'flow' conditions. The generated SM looks as follows:
 ```
 #define State(x) break; case x: if(x##F())
 extern void buttonTest(void) {
-	if(enabled) switch(state){
-		default: case buttonTestIDLE: return;
+    if(enabled) switch(state){
+        default: case buttonTestIDLE: return;
 
-		State(a) {
-			nextState(b, 0);
-			nextState(d, 0);
-			nextState(c, 0); }
+        State(a) {
+            nextState(b, 0);
+            nextState(d, 0);
+            nextState(c, 0); }
 
-		State(b) {
-			nextState(a, 0);
-			nextState(c, 0);
-			nextState(d, 0); }
+        State(b) {
+            nextState(a, 0);
+            nextState(c, 0);
+            nextState(d, 0); }
 
-		State(c) {
-			nextState(d, 0);
-			nextState(b, 0);
-			nextState(a, 0); }
+        State(c) {
+            nextState(d, 0);
+            nextState(b, 0);
+            nextState(a, 0); }
 
-		State(d) {
-			nextState(a, 0);
-			nextState(c, 0);
-			nextState(b, 0); }
+        State(d) {
+            nextState(a, 0);
+            nextState(c, 0);
+            nextState(b, 0); }
 
-		break;}
-	else if(!buttonTestT) enabled = true; }
+        break;}
+    else if(!buttonTestT) enabled = true; }
 #undef State
 ```
 Because we use serial communication to control this, we will use the global variable 'serialByte' from the serial module to fill in the flow conditions. As you have seen, the state names are idiotic short. They are just one character each. Therefor I will use the corresponding ascii values from the serial bus. I want an delay of 1 second during a state transisiton. To accomplish this I changed all '0's to '100's.
@@ -81,31 +81,31 @@ The filled in state machine looks like:
 ```
 #define State(x) break; case x: if(x##F())
 extern void buttonTest(void) {
-	if(enabled) switch(state){
-		default: case buttonTestIDLE: return;
+    if(enabled) switch(state){
+        default: case buttonTestIDLE: return;
 
-		State(a) {
-			if(serialByte == 'b')	nextState(b, 100);
-			if(serialByte == 'd')	nextState(d, 100);
-			if(serialByte == 'c')	nextState(c, 100); }
+        State(a) {
+            if(serialByte == 'b')	nextState(b, 100);
+            if(serialByte == 'd')	nextState(d, 100);
+            if(serialByte == 'c')	nextState(c, 100); }
 
-		State(b) {
-			if(serialByte == 'a')	nextState(a, 100);
-			if(serialByte == 'c')	nextState(c, 100);
-			if(serialByte == 'd')	nextState(d, 100); }
+        State(b) {
+            if(serialByte == 'a')	nextState(a, 100);
+            if(serialByte == 'c')	nextState(c, 100);
+            if(serialByte == 'd')	nextState(d, 100); }
 
-		State(c) {
-			if(serialByte == 'd')	nextState(d, 100);
-			if(serialByte == 'b')	nextState(b, 100);
-			if(serialByte == 'a')	nextState(a, 100); }
+        State(c) {
+            if(serialByte == 'd')	nextState(d, 100);
+            if(serialByte == 'b')	nextState(b, 100);
+            if(serialByte == 'a')	nextState(a, 100); }
 
-		State(d) {
-			if(serialByte == 'a')	nextState(a, 100);
-			if(serialByte == 'c')	nextState(c, 100);
-			if(serialByte == 'b')	nextState(b, 100); }
+        State(d) {
+            if(serialByte == 'a')	nextState(a, 100);
+            if(serialByte == 'c')	nextState(c, 100);
+            if(serialByte == 'b')	nextState(b, 100); }
 
-		break;}
-	else if(!buttonTestT) enabled = true; }
+        break;}
+    else if(!buttonTestT) enabled = true; }
 #undef State
 ```
 Don't forget that any of the nextState function are called when the current state exists. Any state may only exit when we send any of the 3 possible characters. If we send the character 'z' and we exit the state, strange things will happen.
@@ -114,62 +114,62 @@ Don't forget that any of the nextState function are called when the current stat
 Now we fill in the code for the first state 'a'. The empty generated state looks like:
 ```
 State(a) {
-	entryState {
-	
-	}
-	onState {
-	
-		exitFlag = true; } }
-	exitState {
-	
-		return true; } }
+    entryState {
+
+    }
+    onState {
+
+        exitFlag = true; } }
+    exitState {
+
+        return true; } }
 ```
 Remember that we want this state to display a message upon entering and leaving the state. We want to continously print the button state and we must be able to exit the state.
 
 I first add the messages:
 ```
 State(a) {
-	entryState {
-		Serial.println("entering state A, displaying the RISING state of switch");	}
-	onState {
-	
-		exitFlag = true; } }
-	exitState {
-		Serial.print("leaving state A, next state will be ");
-		Serial.println(serialByte);
-		return true; } }
+    entryState {
+        Serial.println("entering state A, displaying the RISING state of switch");	}
+    onState {
+
+        exitFlag = true; } }
+    exitState {
+        Serial.print("leaving state A, next state will be ");
+        Serial.println(serialByte);
+        return true; } }
 ```
 When I exit the state I will also display to which state we are going to jumb, using the 'serialByte'. Ofcourse this state can not yet work before the onState is filled in. By default, the exitFlag is automatically set in the `onState`. In the event that you do not fill anything in in the `onState`the state will run once and exits. So even if you forget to fill in a state, the state machine will go on.
 
 Lets first be able to properly exit the state. State 'a' can switch to state 'b', 'c' or 'd'. Therefor we only need to listen for these 3 characters.
 ```
 State(a) {
-	entryState {
-		Serial.println("entering state A, displaying the RISING state of switch");	}
-	onState {
-		if(serialByte) switch(serialByte) {  // if is used to detect if there is a byte to be read in
-			default: break;		// any unknown byte will break out the switch case
-			
-			case 'b':
-			case 'c':
-			case 'd':
-			exitFlag = true;	// the cases are used as a fall-through switch case. Any of these 3 chars will set the exitFlag
-			break; } }
-	exitState {
-		Serial.print("leaving state A, next state will be ");
-		Serial.println(serialByte);
-		return true; } }
+    entryState {
+        Serial.println("entering state A, displaying the RISING state of switch");	}
+    onState {
+        if(serialByte) switch(serialByte) {  // if is used to detect if there is a byte to be read in
+            default: break;		// any unknown byte will break out the switch case
+
+            case 'b':
+            case 'c':
+            case 'd':
+            exitFlag = true;	// the cases are used as a fall-through switch case. Any of these 3 chars will set the exitFlag
+            break; } }
+    exitState {
+        Serial.print("leaving state A, next state will be ");
+        Serial.println(serialByte);
+        return true; } }
 ```
 I found the fall-through switch case quite elegant really. You may even want to put the 3 cases behind one-another to reduce some space but you may upset your co-workers with it.
 
 ```
 onState {
-	if(serialByte) switch(serialByte) {  // if is used to detect if there is a byte to be read in
-		default: break;		// any unknown byte will break out the switch case
-			
-		case 'b': case 'c': case 'd': // be care full not to burn yourself by pissing off co-workers
-		exitFlag = true;	// the cases are used as a fall-through switch case. Any of these 3 chars will set the exitFlag
-		break; } }
+    if(serialByte) switch(serialByte) {  // if is used to detect if there is a byte to be read in
+        default: break;		// any unknown byte will break out the switch case
+
+        case 'b': case 'c': case 'd': // be care full not to burn yourself by pissing off co-workers
+        exitFlag = true;	// the cases are used as a fall-through switch case. Any of these 3 chars will set the exitFlag
+        break; } }
 ```
 Lastly we need to print read and print the button state. This can be done easily done by adding the following line somewhere in the `entryState`.
 ```
@@ -180,44 +180,44 @@ With this line added, state 'a' is now finished. State 'a' now looks as follows:
 
 ```
 State(a) {
-	entryState {
-		Serial.println("entering state A, displaying the RISING state of switch");	}
-	onState {
-		if(button.readButton() == RISING) Serial.println("RISING");
-	
-		if(serialByte) switch(serialByte) {  // if is used to detect if there is a byte to be read in
-			default: break;		// any unknown byte will break out the switch case
-			
-			case 'b': case 'c': case 'd':
-			exitFlag = true;	// the cases are used as a fall-through switch case. Any of these 3 chars will set the exitFlag
-			break; } }
-	exitState {
-		Serial.print("leaving state A, next state will be ");
-		Serial.println(serialByte);
-		return true; } }
+    entryState {
+        Serial.println("entering state A, displaying the RISING state of switch");	}
+    onState {
+        if(button.readButton() == RISING) Serial.println("RISING");
+
+        if(serialByte) switch(serialByte) {  // if is used to detect if there is a byte to be read in
+            default: break;		// any unknown byte will break out the switch case
+
+            case 'b': case 'c': case 'd':
+            exitFlag = true;	// the cases are used as a fall-through switch case. Any of these 3 chars will set the exitFlag
+            break; } }
+    exitState {
+        Serial.print("leaving state A, next state will be ");
+        Serial.println(serialByte);
+        return true; } }
 ```
 The states which will display RISING and FALLING will only print this just one time. Reading a RISING or FALLING state will automatically set the state to RELEASED or PRESSED respectively. If the states which displays the PRESSED and FALLING states were written exactly like state 'a', the states would print the states as fast the the program runs. To have some delay between the printing actions we will use our generated and assigned timer called 'buttonTestT'. 
 
 When we implement the timer, state 'b' (which will print the PRESSED state) will look as follows:
 ```
 State(b) {  // changed a in b
-	entryState {
-		Serial.println("entering state B, displaying the PRESSED state of switch");	}  // changed A in B
-	onState {
-		if(!buttonTestT && button.readButton() == PRESSED) { // added a check if the timer is 0
-			Serial.println("PRESSED");
-			buttonTestT = 25; } // 250ms delay -> 4x printing actions per second
-	
-		if(serialByte) switch(serialByte) { 
-			default: break;		
-			
-			case 'a': case 'c': case 'd': // changed b in a
-			exitFlag = true;	
-			break; } }
-	exitState {
-		Serial.print("leaving state B, next state will be "); // changed A in B
-		Serial.println(serialByte);
-		return true; } }
+    entryState {
+        Serial.println("entering state B, displaying the PRESSED state of switch");	}  // changed A in B
+    onState {
+        if(!buttonTestT && button.readButton() == PRESSED) { // added a check if the timer is 0
+            Serial.println("PRESSED");
+            buttonTestT = 25; } // 250ms delay -> 4x printing actions per second
+
+        if(serialByte) switch(serialByte) { 
+            default: break;		
+
+            case 'a': case 'c': case 'd': // changed b in a
+            exitFlag = true;	
+            break; } }
+    exitState {
+        Serial.print("leaving state B, next state will be "); // changed A in B
+        Serial.println(serialByte);
+        return true; } }
 ```
 State 'b' is almost identical to state 'a'. I only had to do 2 things. I had to use the timer and swap out an 'a' for a 'b' at a few places.
 
