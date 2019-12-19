@@ -11,9 +11,21 @@ static unsigned char state = trainControllIDLE;
 static bool enabled, runOnce, exitFlag;
 
 extern void trainControllStop(void) {
+	speed = 0;
+	digitalWrite(pwmPin, LOW);
 	state = trainControllIDLE; }
 
+#define directionPin 2
+#define pwmPin 3
+#define leftSensor 4
+#define rightSensor 5
+
+#define accelerateTime 40
+#define decelerateTime 23
+
 extern void trainControllSetState(unsigned char _state) {
+	pinMode(directionPin, OUTPUT);
+	pinMode(pwmPin, OUTPUT);
 	state = _state;
 	runOnce = true;
 	enabled = true;}
@@ -21,49 +33,70 @@ extern void trainControllSetState(unsigned char _state) {
 extern unsigned char trainControllGetState(void) {
 	return state;}
 
-
+byte speed = 0;
+#define maxSpeed 128
 
 #define State(x) static bool x##F(void)
 State(accelerateLeft) {
 	entryState {
-		
+		digitalWrite(directionPin, LOW); // low
 	}
 	onState {
+		if(!pwmTimer) {
+			pwmTimer = accelerateTime; // 20 ms
 
-		exitFlag = true; }
+			if(speed < maxSpeed) speed++;  // about 5 seconds
+			analogWrite(pwmPin, speed); }
+
+		if(digitalRead(leftSensor)) exitFlag = true; }
 	exitState {
 		return true; } }
 
 
-State(deccelerateLeft) {
+State(decelerateLeft) {
 	entryState {
-		
 	}
 	onState {
+		if(!pwmTimer) {
+			pwmTimer = decelerateTime;
 
-		exitFlag = true; }
+			if(speed > 0) speed--;
+			analogWrite(pwmPin, speed); }
+
+		if(speed == 0) exitFlag = true; } 
 	exitState {
 		return true; } }
 
 
 State(accelerateRight) {
 	entryState {
-		
+		digitalWrite(directionPin, HIGH); // right
 	}
 	onState {
+		if(!pwmTimer) {
+			pwmTimer = accelerateTime; // 40ms
+			
+			if(speed < maxSpeed) speed++;  // about 5 seconds
+			analogWrite(pwmPin, speed); }
+
+		if(digitalRead(rightSensor)) exitFlag = true; }
 
 		exitFlag = true; }
 	exitState {
 		return true; } }
 
 
-State(deccelerateRight) {
+State(decelerateRight) {
 	entryState {
-		
 	}
 	onState {
+		if(!pwmTimer) {
+			pwmTimer = decelerateTime;
 
-		exitFlag = true; }
+			analogWrite(pwmPin, speed);
+			if(speed > 0) speed--; }	// about 3 seconds
+
+		if(speed == 0) exitFlag = true; } 
 	exitState {
 		return true; } }
 
@@ -75,16 +108,16 @@ extern void trainControll(void) {
 		default: case trainControllIDLE: return;
 
 		State(accelerateLeft) {
-			nextState(deccelerateLeft, 0); }
+			nextState(decelerateLeft, 0); }
 
-		State(deccelerateLeft) {
-			nextState(accelerateRight, 0); }
+		State(decelerateLeft) {
+			nextState(accelerateRight, 250); } // 25 second
 
 		State(accelerateRight) {
-			nextState(deccelerateRight, 0); }
+			nextState(decelerateRight, 0); }
 
-		State(deccelerateRight) {
-			nextState(accelerateLeft, 0); }
+		State(decelerateRight) {
+			nextState(accelerateLeft, 250); } // 25 second
 
 		break;}
 	else if(!trainControllT) enabled = true; }
