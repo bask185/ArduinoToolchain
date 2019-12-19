@@ -55,10 +55,10 @@ with open(folder + "/" + folder2 + ".ino", "w") as main:             #main.c
     for machine in stateMachines:
         main.write('#include "' + machine + '.h"\n\n\n')
         
-
     main.write("void setup() {\n")
     main.write("\tschedulerInit();\n")
     main.write("}\n\n")
+
     main.write("void loop() {\n")
     main.write("\t// readSerialBus();\n")
     main.write("\tprocessRoundRobinTasks();\n\n")
