@@ -43,7 +43,7 @@ with open("timers.cpp", "w") as scheduler:  #scheduler.c
     scheduler.write("""
 // Don't complain about the indentations. This code is generated for you and you shouldn't be looking at this part.
 ISR(TIMER2_OVF_vect) {
-static unsigned char _1ms, _10ms, _100ms;
+static unsigned char _1ms, _10ms, _100ms, _1000ms;
 
 _1ms += 1; 
 	// 1ms timers
@@ -62,12 +62,29 @@ if(!(_1ms % 10)) { _1ms = 0; _10ms += 1;
 
     scheduler.write("""
 if(!(_10ms % 10)) { _10ms = 0; _100ms += 1;
-	// 100ms timers\n""")
+	// 100ms timers
+""")
     for index, timer in enumerate(timers):
         if int(timeBases[index]) == 100:
             scheduler.write('\tif(' + timer + ') ' + timer + '--;\n')
 
-    scheduler.write("}\n}\n}")
+    scheduler.write("""
+if(!(_100ms % 10)) { _100ms = 0; _1000ms += 1;
+	// 1000ms timers
+""")
+    for index, timer in enumerate(timers):
+        if int(timeBases[index]) == 1000:
+            scheduler.write('\tif(' + timer + ') ' + timer + '--;\n')
+
+    scheduler.write("""
+if(!(_1000ms % 60)) { _1000ms = 0;
+	// 1 minute timers
+""")
+    for index, timer in enumerate(timers):
+        if int(timeBases[index]) == 60000:
+            scheduler.write('\tif(' + timer + ') ' + timer + '--;\n')
+
+    scheduler.write("`\n}\n}\n}\n}\n}")
     scheduler.close()
 
 
