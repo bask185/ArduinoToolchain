@@ -87,7 +87,7 @@ else:
 with open(folder + new_file_name + ".cpp", "w") as c:
     c.write('#include <Arduino.h>\n')
     c.write('#include "' + new_file_name + '.h"\n')
-    c.write('#include "scheduler.h"\n')
+    c.write('#include "timers.h"\n')
     c.write('#include "io.h"\n\n')
 
     c.write("#define entryState if(runOnce) \n")
@@ -123,7 +123,8 @@ with open(folder + new_file_name + ".cpp", "w") as c:
         c.write("\nextern bool " + new_file_name + "(void) {\n")
     else:
         c.write("\nextern void " + new_file_name + "(void) {\n")
-    c.write("\tif(enabled) switch(state){\n")
+    c.write("\tif(!enabled) if(!" + new_file_name + "T) enabled = true;\n")
+    c.write("\telse switch(state){\n")
     c.write("\t\tdefault: case " + new_file_name + "IDLE: return")
     if smType == "nested": 
         c.write("true;\n\n")
@@ -141,12 +142,11 @@ with open(folder + new_file_name + ".cpp", "w") as c:
         if nArrows == 0:
             c.write("\n\t\t\tnextState(" + new_file_name + "IDLE, 0);")
         c.write(" }\n\n")
-    c.write("\t\tbreak;}\n")
-    c.write("\telse if(!" + new_file_name + "T) enabled = true;")
+    c.write("\t\tbreak; \n\t}\n")
     if smType == "nested":
         c.write("\n\treturn false;}\n")
     else:
-        c.write(" }\n")
+        c.write("}\n")
     c.write("#undef State")
 
     c.write("\n\nstatic void nextState(unsigned char _state, unsigned char _interval) {\n")

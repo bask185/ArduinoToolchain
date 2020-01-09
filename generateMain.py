@@ -28,6 +28,9 @@ try:
 except OSError:
     pass
 
+os.system("python.exe updateTimers.py")
+os.system("python.exe updateIO.py")
+
 src = "mainStateMachines"
 dest = folder
 for src_dir, dirs, files in os.walk(src):
@@ -41,13 +44,22 @@ for src_dir, dirs, files in os.walk(src):
             os.remove(dst_file)
         shutil.copy(src_file, dst_dir)
 
-stateMachines = getStateMachines()
+shutil.copy("updateTimers.py"   , folder)
+shutil.copy("timers.tab"        , folder)
+shutil.copy("timers.cpp"        , folder)
+shutil.copy("timers.h"          , folder)
+shutil.copy("updateIO.py"       , folder)
+shutil.copy("io.tab"            , folder)
+shutil.copy("io.cpp"            , folder)
+shutil.copy("io.h"              , folder)
 
+
+
+stateMachines = getStateMachines()
 folder2 = folder[2:]
-print(folder2)
 
 with open(folder + "/" + folder2 + ".ino", "w") as main:             #main.c
-    main.write('#include "scheduler.h"\n')
+    main.write('#include "timers.h"\n')
     main.write('#include "roundRobinTasks.h"\n')
     #main.write('#include " .h"\n') #fill in custom libraries
     #main.write('#include " .h"\n')    
@@ -56,11 +68,12 @@ with open(folder + "/" + folder2 + ".ino", "w") as main:             #main.c
         main.write('#include "' + machine + '.h"\n\n\n')
         
     main.write("void setup() {\n")
-    main.write("\tschedulerInit();\n")
+    main.write("\tinitTimers();\n")
+    for machine in stateMachines:
+        main.write("\t" + machine + "SetState(" + machine + "IDLE);\n")
     main.write("}\n\n")
 
     main.write("void loop() {\n")
-    main.write("\t// readSerialBus();\n")
     main.write("\tprocessRoundRobinTasks();\n\n")
     
     for machine in stateMachines:
@@ -76,8 +89,13 @@ with open(folder + "/roundRobinTasks.cpp", "w") as rr:
 
 extern void processRoundRobinTasks(void) {
 	static unsigned char taskCounter = 0;
-	taskCounter ++;
 
+// HIGH PRIORITY ROUND ROBIN TASKS
+	readSerialBus();
+	updateIO();
+
+// LOW PRIORITY ROUND ROBIN TASKS
+	taskCounter ++;
 	switch(taskCounter) {
 		default: taskCounter = 0;
 
@@ -95,7 +113,6 @@ extern void processRoundRobinTasks(void) {
 
 with open(folder + "/roundRobinTasks.h", "w") as rr:
     rr.write("void processRoundRobinTasks();\n")
-    rr.close()
-
-with open(folder + "/io.h", "w") as rr:
+    rr.write("#define updateIO(); updateOutputs(); \\\n")
+    rr.write("updateInputs();")
     rr.close()

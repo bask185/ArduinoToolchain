@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "weatherStates.h"
-#include "scheduler.h"
+#include "timers.h"
 #include "io.h"
 
 #define entryState if(runOnce) 
