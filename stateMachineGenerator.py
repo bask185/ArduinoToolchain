@@ -144,7 +144,7 @@ with open(folder + new_file_name + ".cpp", "w") as c:
         c.write(" }\n\n")
     c.write("\t\tbreak; \n\t}\n")
     if smType == "nested":
-        c.write("\n\treturn false;}\n")
+        c.write("\n\treturn false; }\n")
     else:
         c.write("}\n")
     c.write("#undef State")
