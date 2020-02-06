@@ -17,16 +17,16 @@ def getStateMachines() : # function tested!
     for file in Files:
         #if i % 2 == 0:
         string.append(file)
-        print(file)
+        #print(file)
         i += 1
     return string
 
 stateDiagrams = getStateMachines()
 
-for index, diagram in enumerate(stateDiagrams):
-    print("{} = {}".format(index, diagram))
-retValue = input("select state machine\n")
-file_name = stateDiagrams[int(retValue)]
+# for index, diagram in enumerate(stateDiagrams):
+#     print("{} = {}".format(index, diagram))
+# retValue = input("select state machine\n")
+# file_name = stateDiagrams[int(retValue)]
 
 
 
@@ -37,17 +37,24 @@ arrowsIn = []
 states1 = []
 states = []
 
-#file_name = sys.argv[1]
-#language = sys.argv[2] # 'c' or 'assembly'
+file_name = sys.argv[1]
+smType = sys.argv[2] # 'c' or 'assembly'
+#print("hello " + file_name)
+#print("world " + smType)
 
 
-smType = "Is this state machine a 'main' or 'nested' type state machine?"
-print(smType)
-while smType != "main" and smType != "nested":
-    smType = input()
-print(smType + " type selected")
+#smType = "Is this state machine a 'main' or 'nested' type state machine?"
+# print(smType)
+# while smType != "main" and smType != "nested":
+#     smType = input()
+# print(smType + " type selected")
+if smType == "main":
+    file_name = "mainStateMachines/" + file_name
 
-with open("yEd_stateMachines/" + file_name, "r") as f:
+if smType == "nested":
+    file_name = "nestedStateMachines/" + file_name
+
+with open(file_name, "r") as f:
     data = f.readlines()
 
 for line in data: #states
@@ -76,7 +83,12 @@ for state in states1:
 f.close()
 
 
+
 new_file_name = file_name[:-8]
+folder = new_file_name
+new_file_name = new_file_name.split('/')
+new_file_name = new_file_name[1]
+#print(new_file_name)
 
 
 if smType == "main":
@@ -87,8 +99,8 @@ else:
 with open(folder + new_file_name + ".cpp", "w") as c:
     c.write('#include <Arduino.h>\n')
     c.write('#include "' + new_file_name + '.h"\n')
-    c.write('#include "timers.h"\n')
-    c.write('#include "io.h"\n\n')
+    c.write('#include "src/basics/timers.h"\n')
+    c.write('#include "src/basics/io.h"\n\n')
 
     c.write("#define entryState if(runOnce) \n")
     c.write("#define onState runOnce = false; if(!runOnce)\n")
@@ -123,11 +135,11 @@ with open(folder + new_file_name + ".cpp", "w") as c:
         c.write("\nextern bool " + new_file_name + "(void) {\n")
     else:
         c.write("\nextern void " + new_file_name + "(void) {\n")
-    c.write("\tif(!enabled) if(!" + new_file_name + "T) enabled = true;\n")
+    c.write("\tif(!enabled && !" + new_file_name + "T) enabled = true;\n")
     c.write("\telse switch(state){\n")
     c.write("\t\tdefault: case " + new_file_name + "IDLE: return")
     if smType == "nested": 
-        c.write("true;\n\n")
+        c.write(" true;\n\n")
     else:
         c.write(";\n\n")
     i = -1
@@ -174,7 +186,7 @@ with open(folder + new_file_name + ".h", "w") as h:
     
     h.write("static void nextState(unsigned char, unsigned char);\n")
     if smType == "nested":
-        h.write("extern bool " + new_file_name + "(void); // nested state machines must resturn a '1' to signal that they are ready\n")            # function call to the state machine
+        h.write("extern bool " + new_file_name + "(void); // nested state machines must return a '1' to signal that they are ready\n")            # function call to the state machine
     else:
         h.write("extern void " + new_file_name + "(void); \n")
     h.write("extern void " + new_file_name + "Stop(void);\n")     # stop

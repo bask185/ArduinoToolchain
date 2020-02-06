@@ -1,41 +1,8 @@
-0	turnout	INPUT_PULLUP
-1	swf	OUTOUT
-2	input2	OUTPUT
-8	amI8	INPUT_PULLUP
-12	input12	INPUT
+1	directionPin	OUTPUT
+2	pwmPin1	OUTPUT
+8	endSensorLeft	INPUT
+12	endSensorRight	INPUT
+13	startSwitch	INPUT_PULLUP
 
 MCP1
-1	mcp26io	INPUT
-2	mcp27io	INPUT_PULLUP
-3	mcp26io	INPUT
-4	mcp27io	INPUT_PULLUP
-
-
-
-MCP2
-0	mcp27io	OUTPUT
-1	mcp26io	INPUT
-2	mcp27io	INPUT_PULLUP
-
-3	mcp26io	OUTPUT
-4	mcp27io	INPUT
-5	mcp26io	INPUT_PULLUP
-
-6	mcp27io	OUTPUT
-7	mcp26io	INPUT
-8	mcp27io	INPUT_PULLUP
-
-9	mcp26io	OUTPUT
-10	mcp27io	INPUT
-11	mcp26io	INPUT_PULLUP
-
-12	mcp27io	OUTPUT
-13	mcp26io	INPUT
-14	mcp27io	INPUT_PULLUP
-
-15	mcp26io	OUTPUT
-
-
-
-
-
+4	somePin	OUTPUT

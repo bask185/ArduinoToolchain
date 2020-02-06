@@ -17,7 +17,7 @@ with open("timers.tab" , "r") as f:
 #print(timeBases)
 
 ###
-with open("timers.cpp", "w") as scheduler:  #scheduler.c 
+with open("src/basics/timers.cpp", "w") as scheduler:  #scheduler.c 
     scheduler.write("#include <Arduino.h>\n")
     scheduler.write('#include "timers.h"\n\n')
     scheduler.write("extern void initTimers() {")
@@ -42,7 +42,7 @@ with open("timers.cpp", "w") as scheduler:  #scheduler.c
 
     scheduler.write("""
 // Don't complain about the indentations. This code is generated for you and you shouldn't be looking at this part.
-ISR(TIMER2_OVF_vect) {
+ISR(TIMER2_COMPA_vect) {
 static unsigned char _1ms, _10ms, _100ms;
 
 // 1ms timers
@@ -84,7 +84,7 @@ if(!(_100ms % 10)) { _100ms = 0;\n\n""")
     scheduler.close()
 
 
-with open("timers.h", "w") as scheduler:  #scheduler.h
+with open("src/basics/timers.h", "w") as scheduler:  #scheduler.h
     scheduler.write("extern void initTimers();\n\n")
     for timer in timers:
         scheduler.write("extern volatile unsigned char " + timer + ";\n")
