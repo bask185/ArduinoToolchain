@@ -80,11 +80,20 @@ if(!(_100ms % 10)) { _100ms = 0;\n\n""")
         if int(timeBases[index]) == 1000:
             scheduler.write('\tif(' + timer + ') ' + timer + '--;\n')
 
-    scheduler.write("\n\n\n}\n}\n}\n}")
+    scheduler.write("\n\n\n}\n}\n}\n}\n\n")
+
+    scheduler.write("""
+extern void repeat(byte *timer, byte interval, void (*function)()) {
+	if(*timer == 0) {
+		*timer = interval;
+		function();
+	}
+}""")
     scheduler.close()
 
 
 with open("src/basics/timers.h", "w") as scheduler:  #scheduler.h
+    scheduler.write("extern void repeat();\n")
     scheduler.write("extern void initTimers();\n\n")
     for timer in timers:
         scheduler.write("extern volatile unsigned char " + timer + ";\n")

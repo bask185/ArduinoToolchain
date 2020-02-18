@@ -1,8 +1,18 @@
-1	directionPin	OUTPUT
-2	pwmPin1	OUTPUT
-8	endSensorLeft	INPUT
-12	endSensorRight	INPUT
-13	startSwitch	INPUT_PULLUP
+7	sensorLeft	INPUT_PULLUP
+8	sensorRight	INPUT_PULLUP
+2	dirPinLeft	OUTPUT
+4	dirPinRight	OUTPUT
+3	pwmPin	OUTPUT
+6	redPin	OUTPUT
+9	greenPin	OUTPUT
+10	bluePin	OUTPUT
+11	whitePin	OUTPUT
 
 MCP1
-4	somePin	OUTPUT
+15	sensorMidde	INPUT_PULLUP
+
+MCP2
+14	sensorMidde1	INPUT_PULLUP
+
+MCP3
+14	sensorMidde2	INPUT_PULLUP

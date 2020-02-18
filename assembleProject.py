@@ -40,8 +40,6 @@ def moveStateMachines(_src, _dest):
                 shutil.move(src_file, dst_dir) # make me move
 
 def assembleTimersTab():
-    stateMachineList = []
-
     with open("timers.tab", "w") as timers:
         for machine in stateMachines:
                 timers.write(machine + "T\t10\n")
@@ -50,6 +48,34 @@ def assembleTimersTab():
         # if lightHandler == 1:
         #     timers.write("lightHandlerT\t100\n")
         timers.close()
+
+def pickModules():
+    clear = lambda: os.system('cls') #on Windows System
+    clear()
+
+    modules = os.listdir("./modules/")
+    print("Select the modules you want to import\ntype 'done' when you are ready")
+    for i, module in enumerate(modules):
+        if i % 2 == 0:
+            print("{:2d}        {}".format(int(i/2), module[:-4]))
+
+    retValue = ""
+    while retValue != 'done':
+        retValue = input()
+        if retValue != 'done':
+            try:
+                i = int(retValue) * 2
+                print(modules[i] + " picked")
+                src = "modules/" + modules[i]
+                #print(src)
+                dest = folder + "/src/modules"
+                #print(dest)
+                shutil.copy(src, dest)
+                src = "modules/" + modules[i+1]
+                shutil.copy(src, dest)
+            except:
+                print("you entered a wrong value, dipshit. try again!")
+    clear()
 
 def copyAllFiles():
     shutil.copy("updateTimers.py"   , folder)
@@ -61,17 +87,20 @@ def assembleMain():
     folder2 = folder[2:]
     with open(folder + "/" + folder2 + ".ino", "w") as main:             #main.c
         main.write('#include "src/basics/timers.h"\n')
+        main.write('#include "src/basics/io.h"\n')
         main.write('#include "roundRobinTasks.h"\n')
         #main.write('#include " .h"\n') #fill in custom libraries
         #main.write('#include " .h"\n')    
         
         for machine in stateMachines:
-            main.write('#include "' + machine + '.h"\n\n\n')
+            main.write('#include "' + machine + '.h"\n')
             
-        main.write("void setup() {\n")
+        main.write("\nvoid setup() {\n")
         main.write("\tinitTimers();\n")
-        for machine in stateMachines:
-            main.write("\t" + machine + "SetState(" + machine + "IDLE);\n")
+        main.write("\tinitIO();\n")
+        main.write("\tSerial.begin(115200);\n")
+        # for machine in stateMachines:
+        #     main.write("\t" + machine + "SetState(" + machine + "IDLE);\n")
         main.write("}\n\n")
 
         main.write("void loop() {\n")
@@ -121,6 +150,7 @@ extern void processRoundRobinTasks(void) {
 def createFolders():
     folder = "../" +input("Type name of new project\n")
     try:
+        print(folder)
         os.makedirs(folder)
         os.makedirs(folder + "/src")
         os.makedirs(folder + "/src/modules")
@@ -150,6 +180,8 @@ moveStateMachines("mainStateMachines", folder)
 
 assembleTimersTab()
 
+pickModules()
+
 copyAllFiles()
 
 assembleMain()
@@ -159,5 +191,7 @@ assembleRoundRobinTasks()
 os.chdir(folder)
 os.system("python.exe updateTimers.py")
 os.system("python.exe updateIO.py")
+
+input("press <ENTER> to close the program")
 
 ### END SCRIPT ###

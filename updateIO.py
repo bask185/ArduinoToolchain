@@ -24,6 +24,7 @@ mcpIO7 = 0
 with open("io.tab", "r") as f:
 	lines = f.readlines()
 	for line in lines:
+		# tab = line.split('\t','\t\t','\t\t\t','\t\t\t\t','\s*')
 		tab = line.split('\t')
 		if tab[0] != '\n':				# if not newline char
 			if tab[0][:-2] == "MCP":	# if not MCP
@@ -200,6 +201,8 @@ extern unsigned char mcpRead(unsigned char pin) {
 
 """)
 	f.write("extern void initIO(void) {\n")
+	if mcpIO > 0:
+		f.write("\tWire.begin();\n")
 	for i in range(0, regularIO):
 		f.write("\tpinMode(" + names[i] + ', ' + iodirs[i] + ");\n")
 
