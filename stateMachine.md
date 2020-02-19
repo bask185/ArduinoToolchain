@@ -25,8 +25,8 @@ These are 2 main state machines for 2 rim (un)loading arms which run parallel.
 
 If you look in detail you'll see that the first draught came close to the end diagram
 
-![Pons1](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/pons1.png)
-![pons2](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/pons2.png)
+![Pons1](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/pons1.png?raw=true)
+![pons2](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/pons2.png?raw=true)
 
 During code writing, the SMs became more and more complex. There were like 6 or 7 versions. These were not used for the generation part which was not yet finished at the time (yes I can also generate assembly code for work). That is why I have drawn 2 main state machines and a supplementing one on a single document.
 
