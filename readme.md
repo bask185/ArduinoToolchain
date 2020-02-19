@@ -1,36 +1,198 @@
-# State Machines & project management
-The purpose of this github page is to provide you with the tools and explanations to set up a fully compile-able arduino folder complete with state machines structures, software timers, debounced button reading and other supplemental modules. Though it is ment for somewhat more experienced programmers I welcome new commers to try this out.
+# State Machines & project assembly
+The purpose of this github page is to provide you with the tools and explanations to set up a 99% compile-able arduino folder complete with state machines skeletons, software timers and other supplemental modules. Simple syntax makes it use-able for both beginning as well as experience programmers alike.
 
-The idea is that one creates simplistic state diagrams in a program called 'yEd' and uses scripts to transform these state diagrams in fully compilable state machines. With a supplementing script the rest of the project can be assembled.
+The syntax is kept as clear as possible as is the state machine structure. Once you set up your project, the only thing you have to do is to fill in the partial filled in state functions and a few bits of the state machine.
 
-I also provide a tool to manage your IO. The idea of this is that you fill in a text file with a certain format and run a scipt to generate your IO.c and IO.h files.
+This all has been develloped to prevent bugs as much as possible. Further documentation is provided on this github page.
 
-There will be supplementing modules for debouncing IO, MCP23017 IO extenders, keypads, RTC modules and more. Most of this is still work in progress or yet to be started.
+# Dependencies
+You need python in order to run the python scripts and yEd to create simple state diagrams. One such a state diagram is included in this repository so you can test the scripts before you instal yEd.
 
-# My motivation
-When I was still learning for my bachelor degree in electronics, I had to write a paper about a topic of choise and I wrote a paper about bug prevention. Programming without bugs is very difficult to do. And on the level on which we program it is next to impossible. There are however things we can do to prevent atleast some bugs.
+# Setup
+In the cloned or downloaded repository you need to create two sub-folders called 'mainStateMachines' and 'nestedStateMachines'. This has to be done just once.
 
-When I started with my first 'real' job, I had to program a bicycle wheel taping machine. And I started out in C. Though the machine was not that complicated, I had difficulty doing the job. During development of the software for this machine and the following machines, a lot of time went into adjusting the structure of the software. The taper software currently still exists out of a switch-case which uses numbers for case-labels and where state++ is used to transist from state to another. The readability is poor and it is an annoying job to make changes. The software came with lots of bugs, of which alot were easily avoidable.
+# Usage
+Once you are set up, the basis usage is very simple. There are just 3 things you have to do to create a new project folder.
+- Either create a state diagram or copy the example from the yEd_stateDiagram directory to the 'mainStateMachines' folder.
+- Optionally, fill in your IO definitions in io.tab conform the example. This can also be done after the project is assembled.
+- double click and run 'assembleProject.py' and enter a name for a project. This script will also ask you if you want to include modules but you can just type 'done' and hit Enter.
 
-All software in the company was a complete mess. It was undocumentated, comments were in dutch and english. the states of their simplisitc state machines were not modulair. 'inc state' or in C 'state++' was used a lot instead of constants, every state had a label of letters and numbers instead of names and some files contained 20000 lines of code. It is still a payne to add states. There was no methods for an entry state. One-time-only stuff which had to happen for a state had to happen in the previous state. Adding a new state ment screwing arround with numbers and transplanting parts of codes. And the worst part, their version control was a complete mess. In some folders there were several extensions to be found; .ASM, .A, .BAC, and no extension. Alles files had the same content, on top of that the entire folder was copied so you'd have folderX (Copy 18) present. And yes 18 was the highest copy number I came accros.
+Your new project is now assembled and lies in the same folder as the state-machine-script folder. It is not yet 100% compile-able. 
 
-With all my knowledge I obtained from coding myself, coding with other people, bugs, looking at folder (copy 18) and undocumentated and poorly written software. I realized that some drastic changes were needed. We needed order, extreme order. 
+Every state machine need to have their 'beginState' defined. By default the #define is commented out. If you try to compile the compile error will show you precisely what you must do.
+```c
+//#define beginState
+#ifndef beginState
+#error beginState not yet defined
+#endif
+```
 
-Some of the things I learned (though I mainly learned how not to do certain things):
+Once the 'beginState' is defined your project is compile-able. From this point on you only have to fill in the stateFunctions and a few flow conditions in the state machine. If you have round robin tasks you can fill these in in roundRobinTasks.cpp. The structure is already in place and the syntax is kept simple.
 
-- how to implement a well-written modulair state machine
-- how to manage project files.
-- how macros can actually increase readability
-- how to work with git
+# Brief explanation of software timers and IO
+Timers are managed in the file timers.tab and IO are managed in io.tab. The scripts 'updateTimers.py' and 'updateIO.py' are needed to generate the source files. When a project folder is assbled, these scripts are already run once.
 
-When writing my paper about preventing bugs was, I learned that 'repeatability' was part of preventing bugs. With this I mean the ability to reproduce earlier achiefed results without bugs. And this triggered something within me. When taking all my learned lessons in account I came to the one logical conlusion, people make a lot of mistakes. The one logical solution? Code generation.
+I use the .tab files and the scripts so I can manage all timers in one place and all IO in one place. Manually adding a timer means editing three places in two files. Manually changing IO also means editing two places in two files. Now you just have to alter one thing in one file and double click on a .py script.
 
-# Code generation.
-The solution to tackle as much problems as possible is to generate as much code as possible. The simple python and shell scripts I have developed can do the following things:
+## Timers
+In timers.tab you can add new timers followed by a timebase interval of 1, 10, 100 or 1000ms. There must be 1 tab between the words (untill I write a better script). Every main state machine has automatically one timer assigned @ a time base of 10ms. If you have changed timers.tab you must run the script 'updateTimers.py' before the changes take effect. This script (re)generates timers.cpp and timers.h and puts them in the src/basics sub directory. You can do this as often as needed. It is never needed to manipulate timers.cpp and timers.h yourself.
+``` 
+timerT 100
+```
 
-- They can generate entire state machine skeletons using a simple state diagram made with yEd.
-- They can assembly a fully arduino compilable projec folder
-- They can create files for software timer
-- IO can be generated using a simple text file
+All timers are 8 bit large and are of decrementing order. They count down to zero. You can simply use the `=` operator to stuff a value in it, and use `if` to check if a timer reaches 0.
 
-The scripts will be used in the alarm clock example to set up an entire new project. I will show all steps which must me made for setting up a project. For this we will use a checklist.
+```c
+if(!timerT) {
+	timerT = someInterval;
+	// do something every someInterval
+}
+```
+These timers have proven to be extremely usefull and flexible in combination with the state machine structure. 
+
+In addition I have made a simple function called ```repeat();```
+This function calls any given function @ interval time using a timer of choise.
+
+```c
+repeat(&timer1T, 100, foo); // this function needs to use a pointer 
+repeat(&timer2T, 200, bar); // unfortunately
+```
+
+
+
+## IO
+The IO work in the same manner. In io.tab you must fill in a pin number followed by: tab, name/description, tab, iodir (OUTPUT, INPUT or INPUT_PULLUP). 
+```
+7	sensorLeft	INPUT_PULLUP
+```
+The script will generate the source files. #defines are made for all descriptions in the header file and the source file will contain the ```initIO()``` function. This function sets the pinModes for us. We can never forget  to use a pinMode instruction anymore. ```initIO()``` is called from ```void setup()```. As this is generated for us, we cannot forget to run the init function either.
+
+These IO files have integrated support for the MCP23017 I2C IO extender. Making IO for these devices can also be done in the same io.tab. There can be as much as 8 MCP23017 devices. Take note that every slave has just 16 GPIO. So use 0-15 for every IO
+```c
+7	sensorLeft	INPUT_PULLUP
+
+MCP1
+15	sensorMidde	INPUT
+
+MCP2
+4	led4	OUTPUT
+// ETC
+```
+```initIO()``` does the configuring of these devices for us. To control the IO you can use two functions called ```mcpWrite(io, state);``` and ```mcpRead(io);```. They work the exact same as ```digitalWrite();``` and ``` digitalRead()``` The beauty is that we do not have to remember which IO is on which mcp device and on which port. These functions calculate the correct slave, port and pin number. Writing to a pin does not affect other pins. 
+
+The only condition is that the hardware adresses of the slaves must be in incrementing order. 
+
+# The state machines
+The state machines as they are implemented have a painfully clear and easy to use syntax. I'll show an example of a generated state machine with 2 states:
+```c
+// STATE FUNCTIONS
+stateFunction(monitorSw1) {
+	entryState {
+		
+	}
+	onState {
+
+		exitFlag = true; 
+	}
+	exitState {
+
+		return true; 
+	}
+}
+
+
+stateFunction(monitorSw2) {
+	entryState {
+		
+	}
+	onState {
+
+		exitFlag = true;
+	}
+	exitState {
+
+		return true; 
+	} 
+}
+
+// STATE MACHINE
+extern bool readTrack1(void) {
+	STATE_MACHINE_BEGIN
+
+	State(monitorSw1) {
+		nextState(monitorSw2, 0); 
+	}
+
+	State(monitorSw2) {
+		nextState(monitorSw1, 0);
+	}
+
+	STATE_MACHINE_END
+}
+```
+You see a lot of macros. It is not needed to know how everything works in detail or how the macros look like. I am convinced that you should be able to 'guess' that code behind the 'entryState' macros is run only once and that you need to set the exitFlag in order to run the exitState.
+
+What you must know is this. The state machine is actually a switch-case disguised by macros. A `State()` is actually a case label. `State(monitorSw1Sw2)` performs a function call to `stateFunction(monitorSw1Sw2)`. This stateFunction returns true once the exitState is executed. When this happens, the function `nextState()` is called to select a new state with or without a timed delay. The state names themselfes are an enum which lie in the header file. New states must be added there.
+
+The state machine in the bottom need no filling in. You could adjust the 0 to a value lower than <255 to achief a delay between following states. This particular state machine is called 'readTrack1' this used to be the name of the yEd state diagram. The timer for this state machine is therefor called readTrack1T. This one is also used by the nextState function to achief the delay. This is how the basic functionality of a state machine functions.
+
+It may be that one of your states can transition to more than one other state. In that case the state machine also need filling in because the following code would be generated.
+```c
+State(X) {
+	nextState(Y, 0);
+	nextState(Z, 0);
+}
+```
+This is not complete. We need to add something so the state machine picks one of the two following states.
+```c
+State(X) {
+	if(/* condition */) nextState(Y, 0);
+	else                nextState(Z, 0);
+}
+```
+The reason why a certain state is to be picked must be filled in. This reason why I call the _flow condition_
+
+I will show an example of a filled in state which waits on a certain input and has a time-out. I will make use of an entry message and exit message:
+```c
+stateFunction(monitorSw1) {
+	entryState {
+		Serial.println("entering state monitorSw1");
+		readTrack1 = 150; // set timeout time
+	}
+	onState {
+		if(!mcpRead(sensor)) { // if sensor is made on time
+			exitFlag = true;
+		}
+		if(!readTrack1) {	// if timeout occurs
+			error = true;	// set some error flag
+			exitFlag = true; 
+		}
+	}
+	exitState {
+		Serial.println("leaving state monitorSw1");
+		if(error) { Serial.println("TIME OUT OCCURED"); }
+		return true; } }
+```
+This state will run the exit state if either the sensor is made or a timeout occurs. If the timeout occurs the `error` flag is set.
+
+We could use this same `error` flag in the state machine like this:
+```c
+State(monitorSw1) {
+	if(error) nextState(abort, 0);
+	else      nextState(monitorSw2, 0);
+}
+```
+When you start using this software, you will see that the state machine has a 101 relation with your state diagram. 
+- For every amount of  spheres there is an equal amount of states
+- For every amount of outgoing arrows there is an equal amount of calls to `nextState` 
+- For every amount of arrows pointing to state `X` there is an equal amount of calls to `nextState(X,0)` 
+
+This is one of the most powefull features this code structure has. A 101 relation with a state diagram. Other features are:
+
+- clear syntax of state functions makes it easy to fill in stateFunctions. 
+- This easiness helps to prevent bugs.
+- software timers are extremely simple. They have very little overhead and the operation is simple.
+- not that much overhead in general
+- Everything is kept as modular as possible. It is relative easy to add new states, remove states or change the flow of the state machine
+- easy to use nested state machines fromout an other state machine.
+  

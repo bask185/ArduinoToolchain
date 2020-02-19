@@ -8,11 +8,11 @@ Therefor I devised a state machine which is as human readable as possible. I mad
 
 Before I show some code I'll explain briefly how my state machines work. And why I have chosen for that manner.
 
-My state machine exists out of a switch-case of which every case performs a function call to an other function, the state. This state function returns true when the state is finished. When that is the case, the switch-case will select a new function.
+My state machine exists out of a switch-case of which every case performs a function call to an other function, the stateFunction. This state function returns true when the state is finished. When that is the case, the switch-case will select a new function.
 
-The decision which state is next to be executed is taken in the switch case. All other code (the states) are elsewhere. The advantage of this is that the entire flow of the SM is caught within a relative small switch-case which ususally fits in a single page.
+The decision which state is next to be executed is taken in the switch case. All other code (the stateFunctions) are elsewhere. The advantage of this is that the entire flow of the SM is caught within a relative small switch-case which usually fits in a single page.
 
-The states themselfes consist out of 3 parts; the entryState, the onState and the exitState. The entry state is executed once on the first iteration of the state. From that point on, the onState will be executed as long as the exitFlag is not set. Once this flag is set, the exitState will be executed. The exitState will return true when it is done, this will signal the SM that the state is finished. Though we need 2 flags per SM to work, this structure allows for great versability. Especially with the SW timer implementation every state can have a time out.
+The states themselfes consist out of 3 parts; the entryState, the onState and the exitState. The entry state is executed once on the first iteration of the state. From that point on, the onState will be executed as long as the exitFlag is not set. Once this flag is set, the exitState will be executed. The exitState will return true when it is done, this will signal the SM that the state is finished. Though we need 2 flags per SM to work, this structure allows for great versatility. Especially with the SW timer implementation every state can have a time out.
 
 ## yEd state diagrams.
 This is were all our new SW projects begin. We write down the basic operation in the form of simple state diagrams in the program yEd. This is as much needed as well as it is important. It provides the basic SW documentation which is vital to have once your program becomes complex. It helps you and your co-workers read and navigate through the code.
@@ -51,7 +51,7 @@ The taping module is as almost as big as these 2 state machines togather. You ca
 
 There are a few rules which must be followed when creating the state diagram. 
 - The use of camelCase is mandatory. 
-- State names may not ever contain spaces or compiler-unfriendly characters
+- State names may not ever contain spaces or c-unfriendly characters
 - Nested state machines (state machines which are to be called from out another) are to have atleast 1 sphere without an outgoing arrow.
 - Nested state machines diagrams may contain more than 1 process but take note that only 1 can run at any given time.
 - Main state machines diagrams (which are called from the main loop) should not contain spheres without outgoing arrows. It is technically possible and it does not hurt but it should be avoided non the less
@@ -60,32 +60,36 @@ Spheres without outgoing arrows will automatically enter an idle state and by my
 
 ## Code for the states
 
-The code uses four macros for. Some people claim that macro's are ever a bad idea, that they make code harder to read because you use non-standard words and you can create a debug hell for yourself and for others. Point 1 is simply not true. Point 2 on the other hand can be true, but this is also perfectly avoidable. You can test the macros before you start using them on 200+ places.
+The code heavily relies on macros. Some people claim that macro's are ever a bad idea, that they make code harder to read because you use non-standard words and you can create a debug hell for yourself and for others. Point 1 is simply not true. Point 2 on the other hand can be true, but this is also perfectly avoidable. You can test the macros before you start using them on 200+ places.
 
 Also you can see macro's as library functions. If you need a library to use the I2C bus, LCD, a keypad or a digital sensor. You will not be looking in the library itself to see how the functions precisely work. You just want to use the functions and get the job done. The same can be true for some macro's. You can be content if you can use them without knowing how they precisely look like.
 
 Macros are just a tool of the language just like functions are. You just have to use them right. The states I developed all look like:
-```
-State(stateName) { // the state 
+```c
+stateFunction(stateName) { // the state 
     entryState {
 
     }
     onState {
 
-        exitFlag = true; }
+        exitFlag = true;
+    }
     exitState {
 
-        return true; } }
+        return true;
+    }
+}
 ...
 ...
 State(someState) { // different macro for the state machine
-	nextState(someOtherState,0); } // when 'someState' is finished, 'someOtherState' will run.
+	nextState(someOtherState,0); 
+} // when 'someState' is finished, 'someOtherState' will run.
 ```
 
 Given the information that you are looking at a state of a state machine which is proven to work. You should be able to figure out how to read it and how to use it. You do not have to know how the macro's precisely look like. The macros however can be found above the SM in code.
 
 If we expand the macro's we would get:
-```
+```c
 static bit someStateF(void)() {
     if(runOnce) {
 
@@ -104,29 +108,37 @@ static bit someStateF(void)() {
 break; case someState: if(someStateF()) {
     nextState(someOtherState, 0); }
 ```
-You now see how the states or functions actually work. I believe that the macro method displays enough information in order to work with them. And it looks much more clear.
+You now see how the statesFunctions actually work. I believe that the macro method displays enough information in order to work with them. And it looks much more clear.
 
 Notice that, in the expanded version, there is a captital F appended to the state name. For states I often use an enum. Mainly because the actual binary number of the state is not important. The state functions cannot have the same name as the enumerated states. Therefor we add the letter 'F' of function for the function and function call.
 
 Also note that a 'new' variable appeared 'runOnce'. May it be clear that this variable is used to handle the entryState. 
 
-The macro's hide the runOnce flag, they hide the F behind the state names, they transform a typical C function in a 'State' and they modify a switch-case into a state machine. I just hide the things that we do not have to see. We do not have to see that every case has a break, we don't have to see in every state how the entryState works again and again.
+The macro's hide the runOnce flag, they hide the F behind the state names, they transform a typical C function in an actual 'stateFunction' and they modify a switch-case into a complete state machine. I just hide the things that we do not have to see. We do not have to see that every case has a break, we don't have to see in every state how the entryState works again and again.
 
 In short I move as much as 'irrelevant' information to the background as I deemed logical.
 
 ## the macros
 
-Though I have already gave some hints on how they look like, here are the macro's:
-```
+Here are the macros:
+```c
+#define stateFunction(x) static bool x##F(void)
 #define entryState if(runOnce) 
 #define onState runOnce = false; if(!runOnce)
-#define exitState if(!exit) return false; else
+#define exitState if(!exitFlag) return false; else
+#define State(x) break; case x: if(x##F())
+#define STATE_MACHINE_BEGIN if(!enabled) { \
+	if(!readTrack1T) enabled = true; } \
+else switch(state){\
+	default: Serial.println("unknown state executed, state is idle");\
+    state = readTrack1IDLE; \
+    case readTrack1IDLE: return true;
+#define STATE_MACHINE_END break;}return false;
 
-#define State(x) static bit x##F(void) // for the states
-#undef State
-
-#define State(x) break; case x: if(x##F()) // for the state machine
-#undef State
+//#define beginState
+#ifndef beginState
+#error beginState not yet defined
+#endif
 ```
 The macros are always directly above where they are used. So you can always find and read them above the states and state machines. That you don't have to know them, does not mean it is a bad idea to know them.
 
@@ -137,27 +149,34 @@ I have also showed the macro for the state machine `State(x) break; case x: if(x
 ## the code for the state machine
 Now I'll discuss all code of the state machine and the code arround the state machine. The state machine on it's own is a function which uses a switch-case to call the state functions.
 
-```
-#define State(x) break; case x: if(x##F())
-extern bit newWals(void) {
-if(enabled) switch(state){
-    default: case newWalsIDLE: return true;
+```c
+extern bool newWals(void) {
+    if(!enabled) {
+        if(!readTrack1T) enabled = true;
+    }
+    else switch(state) {
+        default: 
+        Serial.println("unknown state, state is idle"); 
+        state = readTrack1IDLE; 
+        case readTrack1IDLE: 
+        return true;
 
-    State(powerOff) {
-        nextState(startPosition, 0); }
+        State(powerOff) {
+            nextState(startPosition, 0); }
 
-    State(startPosition) {
-        nextState(startMotor, 0); }
-...
-...
-    break;}
-    else if(!stateT) enabled = true;
-    return false;}
-#undef State
-```
-This is the entire state machine function. In the first lines you notice a variable called 'enabled' and the default case which returns true. The enabled flag allows the state machine to run. It is used to allow for inter-state delays. It may be that you want to wait an x ammount of time between states. This delay (non-blocking) is set by filling in a value for the 2nd arguement of the following function. 
+        State(startPosition) {
+            nextState(startMotor, 0); }
+    ..
+    ..
 
+        break;
+    }
+    return false;
+}
 ```
+This is the entire state machine function.It may be that you want to wait an x ammount of time between states. This delay (non-blocking) is set by filling in a value for the 2nd arguement of the following function. 
+
+```c
 static void nextState(unsigned char _state, unsigned char _interval) {
     state = _state;
     if(_interval) {
@@ -171,11 +190,13 @@ The return function of the state machine is typically only used for nested state
 
 This feature is not present in 'main state machines'. Main state machines typically do not remain in an IDLE mode. They can but they don't have to return true or false as they are called from the main.
 
-## The code for the timers.
-At our work we were at first using a beatiful piece of SW timers. We had a function `start(foo, intervalTime)` and `trigger(bar, delayTime)`. These function would dynamically allocate a sw timer and hook it up with the address of the function. It worked well but later on we got into trouble with the overhead which came with it. Long story short... I copied the SW timer usage of our now-retired assembly programmer and translated it into C and performed some optimization. In this timer ISR he made blocks with a separate interfals for 2ms (<- ISR timer), 10ms and 100ms. Within these blocks he'd decrement all software timers.
+---
+## The code for the timers in more detail.
+---
+At our work we were at first using a beatiful piece of SW timers. We had a function `start(foo, intervalTime)` and `trigger(bar, delayTime)`. These function would dynamically allocate a sw timer and hook it up with the address of the function. It worked well but later on we got into trouble with the overhead which came with it. Long story short... I copied the SW timer usage of our now-retired assembly programmer and translated it into C and performed some optimization. In this timer ISR he made blocks with a separate interfals for 2ms (<- ISR timer), 10ms, 100ms and 1000ms. Within these blocks he'd decrement all software timers.
 
 The ISR looks as follows:
-```
+```c
 ISR(TIMER2_OVF_vect) {
 static unsigned char _1ms, _10ms, _100ms;
 _ms += 1;
@@ -197,17 +218,15 @@ if(!(_100ms % 10)) { // if 1000ms passed
     _100ms = 0;
     // add 100ms timers
     if(timerWith100msInterval) timerWith100msInterval -= 1;
-    if(anotherTimerWithaTooLongName) anotherTimerWithaTooLongName -= 1; // some dummy values to illustrate the use
+    if(anotherTimerWithaTooLongName) anotherTimerWithaTooLongName-= 1;
 
 }
 }
 }
 ```
-Please do not be upset about the strange indentation style here. I found this to be more logical for this particular function than any other default style.
-
 This method simple decrements those timers which aren't 0 yet. Because of the devision of timer bases, all timers can be of an 8-bit type. This safes memory and increases performance alike. 
 
-The typical arduino method with millis() is to substract 2x 32 bit variables and compare the result with a 3rd 32 bit variable.
+The typical arduino method with millis() is to substract 2x 32 bit variables and compare the result with a 3rd 32 bit consant.
 
 The best part of this SW timer is that it is generated for us. All main state machines have their own timer variables within the timer files. The name of these timers are the names of the state machines with the captial T appended. Furthermore, timers for default functions are also added. As of now I only have debounceT implemented to debounce buttons and or sensors.
 
@@ -215,10 +234,11 @@ This incredibly simple method has proven to be quite dynamic and easy to use. A 
 - Every state can have it's own time out if needed
 - You can build a non-blocking in-state delay for a certain state
 - You can implement a delay between two following states (using the nextState() function).
-
+---
 ### The time-out
+---
 A time out for a state can be needed depending on your use case. It can be realized as follows:
-```
+```c
 State(swingArmOutside) {
     entryState{
         stateT = 200; // 2000ms delay
@@ -237,17 +257,16 @@ State(swingArmOutside) {
         return true; } }
 ```
 When this state is finished 'errorFlag' can be true or false. The state machine, which is now ready to pick a new state, may read this flag in order to determen which state it should select.
-```
-...
+```c
 State(swingArmOutside) {
     if(errorFlag) 	nextState(ALARM,0);
     else 		nextState(swingArmInside,0); }
-...
 ```
-
+---
 ### The in-state delay
+---
 It may occur that you want a delay between the entry state and the on state. This can be easily achieffed as following:
-```
+```c
 State(swingArmOutside) {
     entryState{
         stateT = 100; } // 1 second delay 
@@ -264,7 +283,7 @@ State(swingArmOutside) {
 My earlier SW relied heavily on delays between 2 following states. The machines mostly use pneumatic cylinders and it takes time for them to reach their positions. And because most cylinders have no sensors, timing was your only friend. With this SW timer usage. A delay between 2 states is not really needed as we have the tools for in-state delays. However it does not hurt to have inter-state delays. It allows for a little more complexity if you want, or you make it a little more simple. The manner of using an inter-state delay is just very simple and easy.
 
 The inter-state delay is achieffed by setting a value in the 2nd arguement of nextState(). This arguement is defaulted to 0. By changing the 0 to something what is not 0 the function will do 2 things. 
-```
+```c
 static void nextState(unsigned char _state, unsigned char _interval) {
     state = _state;
     if(_interval) {
@@ -276,21 +295,23 @@ static void nextState(unsigned char _state, unsigned char _interval) {
 When interval != 0, the enabled flag is set at 'false' and the interval value is loaded in the timer. This timer decrements until it reaches 0.
 
 When the enabled flag is false, the SM will not be called, instead the state timer is polled in the else-if statement. Once the timer reaches 0, 'enabled' will be set at 'true' and the next state will be executed.
-```
+```c
 else if(!stateT) enabled = true;
 ```
 
-## nested state machines
+---
+## Nested state machines
+---
 One of the most powerful features this SW structure offers is the easy method to utilize nested state machines. The nested state machines are almost identical to the main state machines. There are a few subtile differences.
 - Nested SMs will always come to an end or in other words reach the idle stat (remember the speheres without outgoing errors)
 - Nested SMs return true when they have reached this end, otherwise the SM will return false.
 - Nested SM have no timer allocated in the timer files. Instead the nested SM can make use of the calling main SM's or 'parent' SM's timer. 
 
 Within the header file of the nested SM there lies a macro for it's own timer. The child SM's timer is to be #defined as his parent SM's timer. If the timer is not defined, an #error directive will inform the programmer of this when the programmer attempts to compile the project. 
-```
+```c
 #define childT  parentT // this must be added by the programmer
 #ifndef childT
-#error childT is not defined, define this as the parent's timer
+#error childT is not defined, define this as the parents timer
 #endif
 ```
 There are 2 very important advantages of implementing nested state machines.
@@ -301,7 +322,7 @@ For intance. In the first complex machine (a wheel trueing machine) I programmed
 
 A nested state machine needs a one time initialisation and it's main function is to be called. Because of the structure the function call will eventually return true. Calling a nested state machine from out an other looks as follows:
 This is for rolling a wheel in the machine
-```
+```c
 State(rollWheelIn) {
     entryState{
         handleWheelSetState(rollIn); } // initialize the nested SM. The function is generated, rollIn is a state of the SM
@@ -313,10 +334,10 @@ State(rollWheelIn) {
         return true; } }
 ```
 And for rolling out a wheel:
-```
+```c
 State(rollWheelOut) {
     entryState{
-        handleWheelSetState(rollOu); } // now we roll a wheel out
+        handleWheelSetState(rollOut); } // now we roll a wheel out
     onState{
         if(handleWheel()) { 	// same function call
             exitFlag = true; } }
