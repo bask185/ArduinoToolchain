@@ -2,13 +2,19 @@
 
 import os
 import shutil, errno
+import platform
 
 def getStateMachines(type) : # function tested!
     Files = []
-    if type == "main":
-        type = ".\mainStateMachines"
+    if platform.system() == "Windows":
+        slash = '\\'
     else:
-        type = ".\\nestedStateMachines"
+        slash = '/'
+
+    if type == "main":
+        type = "." + slash +"mainStateMachines"
+    else:
+        type = "." + slash + "nestedStateMachines"
 
     for root, dirs, fileList in os.walk(".", topdown=False):
         if root == type :
@@ -148,7 +154,8 @@ extern void processRoundRobinTasks(void) {
         rr.close()
 
 def createFolders():
-    folder = "../" +input("Type name of new project\n")
+    folder = input("Type name of new project\n")
+    folder = "../" + folder
     try:
         print(folder)
         os.makedirs(folder)
