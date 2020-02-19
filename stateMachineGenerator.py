@@ -2,12 +2,18 @@
 import sys
 import xml
 import os
+import platform 
 
 def getStateMachines() : # function tested!
+    slash = ""
     Files = []
-
+    print(platform.system())
+    if platform.system() == "Windows":
+        slash = '\\'
+    else:
+        slash = '/'
     for root, dirs, fileList in os.walk(".", topdown=False):
-        if root == ".\yEd_stateMachines" :
+        if root == "." + slash + "yEd_stateMachines" :
             Files = fileList
 
    

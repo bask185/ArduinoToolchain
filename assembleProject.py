@@ -50,8 +50,8 @@ def assembleTimersTab():
         timers.close()
 
 def pickModules():
-    clear = lambda: os.system('cls') #on Windows System
-    clear()
+    #clear = lambda: os.system('cls') #on Windows System
+    #clear()
 
     modules = os.listdir("./modules/")
     print("Select the modules you want to import\ntype 'done' when you are ready")
@@ -75,7 +75,7 @@ def pickModules():
                 shutil.copy(src, dest)
             except:
                 print("you entered a wrong value, dipshit. try again!")
-    clear()
+    #clear()
 
 def copyAllFiles():
     shutil.copy("updateTimers.py"   , folder)
@@ -168,11 +168,11 @@ folder = createFolders()
 
 stateMachines = getStateMachines("nested") #GENERATE ALL NESTED STATE MACHINES
 for machine in stateMachines:
-    os.system("python.exe stateMachineGenerator.py " + machine + ".graphml" + " nested")
+    os.system("python stateMachineGenerator.py " + machine + ".graphml" + " nested")
 
 stateMachines = getStateMachines("main")   #GENERATE ALL MAIN STATE MACHINES
 for machine in stateMachines:
-    os.system("python.exe stateMachineGenerator.py " + machine + ".graphml" + " main")
+    os.system("python stateMachineGenerator.py " + machine + ".graphml" + " main")
 
 moveStateMachines("nestedStateMachines", folder)
 
@@ -189,8 +189,8 @@ assembleMain()
 assembleRoundRobinTasks()
 
 os.chdir(folder)
-os.system("python.exe updateTimers.py")
-os.system("python.exe updateIO.py")
+os.system("python updateTimers.py")
+os.system("python updateIO.py")
 
 input("press <ENTER> to close the program")
 
