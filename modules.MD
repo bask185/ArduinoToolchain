@@ -1,6 +1,6 @@
 # Modules
 
-Modules or libaries actually exist to make our life easier. With Arduino we depend on them. The liquid crystal library, I2C and the default serial library are just a few of them. Ofcourse it may be desirable that for your projects you may want to make your own libraries (I prefer to refer to my libraries as modules). 
+Modules or libaries exist to make our life easier. With Arduino we depend on them. The liquid crystal library, I2C and the default serial library are just a few of them. Ofcourse it may be desirable that for your projects you may want to make your own libraries (I prefer to refer to my libraries as modules). 
 
 I store all my modules in the module sub-folder in the state-machine-script folder. With every project you build the amount of modules you make, may grow. The idea is that every time you start a new project, the assemble script allows you to pick the modules you want to include in your new project and copy these modules to new project folder.
 
@@ -52,7 +52,7 @@ If you want to read the state of aN INPUT, you can use the function `debounceInp
 - The function returns the current state of the button
 - If the state is RISING or FALLING the state will be set at RELEASED or PRESSED respectively.
 
-A RISING or FALLING state is only lasts for 20ms. If you call `debounceInput()` within this time, the function will return the FALLING or RISING state just one time. The read functions will set the state to ON or OFF if you call it when the state is still RISING or FALLING. If you do not call `debounceInput()` within this time, the input state will be automatically set at ON or OFF by `debounceInput()`. Afteral an input state cannot be RISING or FALLING indefinately.
+A RISING or FALLING state only lasts for 20ms. If you call `debounceInput()` within this time, the function will return the FALLING or RISING state just one time. The read functions will force the state to ON or OFF if you call it when the state is still RISING or FALLING. If you do not call `debounceInput()` within this time, the input state will be automatically set at ON or OFF by `debounceInput()`. Afteral an input state cannot be RISING or FALLING indefinately.
 
 The code:
 ```c
@@ -80,6 +80,6 @@ In the future I will be expanding my module folder and push the new features to 
 ---
 ## Promoting a state machine to module
 ---
-It may be that you on one good day you will write a state machine which can be used for other projects as well. For instances. I am currently programming a 6-state state machine to simulate real life day-night cycles with RGBWW led strips. I have also included a rain and a thunder state. This state machine uses a geekcreit dfplayer to play mp3 files for the rain and thunder soundeffects. Once this state machine is complete I can make a few alterations and put it in the module folder. Than I can modify the assembly script to initialize the thing, call it from the void loop and create the needed software timers.
+It may be that you on one good day you will write a state machine which can be used for other projects as well. For instance. I am currently programming a 6-state state machine to simulate real life day-night cycles with RGBWW led strips. I have also included a rain and a thunder state. This state machine uses a geekcreit dfplayer to play mp3 files for the rain and thunder soundeffects. Once this state machine is complete I can make a few alterations and put it in the module folder. Than I can modify the assembly script to initialize the thing, call it from the void loop and create the needed software timers.
 
 I would litterly have to type 0 lines of C code and have a fully functioning well tested day night lighting simulation with sound as soon as the project folder is assembled.

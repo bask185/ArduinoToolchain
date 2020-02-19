@@ -30,7 +30,7 @@ Every state machine need to have their 'beginState' defined. By default the #def
 Once the 'beginState' is defined your project is compile-able. From this point on you only have to fill in the stateFunctions and a few flow conditions in the state machine. If you have round robin tasks you can fill these in in roundRobinTasks.cpp. The structure is already in place and the syntax is kept simple.
 
 # Brief explanation of software timers and IO
-Timers are managed in the file timers.tab and IO are managed in io.tab. The scripts 'updateTimers.py' and 'updateIO.py' are needed to generate the source files. When a project folder is assbled, these scripts are already run once.
+Timers are managed in the file timers.tab and IO are managed in io.tab. The scripts 'updateTimers.py' and 'updateIO.py' are needed to generate the source files. When a project folder is assembled, these scripts wil be run by the main assembly script.
 
 I use the .tab files and the scripts so I can manage all timers in one place and all IO in one place. Manually adding a timer means editing three places in two files. Manually changing IO also means editing two places in two files. Now you just have to alter one thing in one file and double click on a .py script.
 

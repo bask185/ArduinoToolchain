@@ -4,14 +4,14 @@
 enum states {
 	RISING,
 	FALLING,
-	PRESSED,
-	RELEASED };
+	ON,
+	OFF };
 
-class Button {
+class Debounce {
 public:
-	Button(unsigned char _pin);
-	readButton();
-	updateButton();
+	Debounce(unsigned char _pin);
+	readInput();
+	debounceInputs();
 
 private:
 	unsigned char state;

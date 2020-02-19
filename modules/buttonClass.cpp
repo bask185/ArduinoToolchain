@@ -1,11 +1,11 @@
 #include <Arduino.h>
-#include "buttonClass.h"
+#include "debounceClass.h"
 
-Button::Button(unsigned char _pin) {
+Debounce::Debounce(unsigned char _pin) {
 	pinMode(_button, INPUT_PULLUP);
 	pin = _pin; }
 
-Button::unsigned char readButton() {
+Debounce::unsigned char debounceInputs() {
 	byte retValue = state;
 
 	if(state == RISING) state = RELEASED; // take note I use a pull-up resistor
@@ -13,7 +13,7 @@ Button::unsigned char readButton() {
 
 	return retValue; }
 
-Button::unsigned char updateButton() {
+Debounce::unsigned char readInput() {
 	static bool oldSample = false, statePrev = false;
 	bool newSample = digitalRead(pin);
 
@@ -26,8 +26,8 @@ Button::unsigned char updateButton() {
 			else			return FALLING; }
 
 		else {						// or if there is no flank change return PRESSED or RELEASED
-			if(newSample)	return PRESSED; 
-			else			return RELEASED; } }
+			if(newSample)	return ON; 
+			else			return OFF; } }
 
 	oldSample = newSample; }
 
