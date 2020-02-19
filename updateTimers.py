@@ -93,7 +93,7 @@ extern void repeat(byte *timer, byte interval, void (*function)()) {
 
 
 with open("src/basics/timers.h", "w") as scheduler:  #scheduler.h
-    scheduler.write("extern void repeat();\n")
+    scheduler.write("extern void repeat(byte* ,byte, void (*)());\n")
     scheduler.write("extern void initTimers();\n\n")
     for timer in timers:
         scheduler.write("extern volatile unsigned char " + timer + ";\n")

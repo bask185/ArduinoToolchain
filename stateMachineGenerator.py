@@ -190,6 +190,7 @@ with open(folder + new_file_name + ".h", "w") as h:
     h.write(" };\n\n")
     
     h.write("extern bool " + new_file_name + "(void); \n")
+    h.write("extern void " + new_file_name + "Init();\n")
     h.write("extern void " + new_file_name + "SetState(unsigned char);\n")
     h.write("extern unsigned char " + new_file_name + "GetState(void);\n") # get currentState
     h.close()

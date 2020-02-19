@@ -99,8 +99,8 @@ def assembleMain():
         main.write("\tinitTimers();\n")
         main.write("\tinitIO();\n")
         main.write("\tSerial.begin(115200);\n")
-        # for machine in stateMachines:
-        #     main.write("\t" + machine + "SetState(" + machine + "IDLE);\n")
+        for machine in stateMachines:
+            main.write("\t" + machine + "Init();\n")
         main.write("}\n\n")
 
         main.write("void loop() {\n")
