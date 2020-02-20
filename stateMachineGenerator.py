@@ -128,6 +128,10 @@ with open(folder + new_file_name + ".cpp", "w") as c:
         c.write("#endif\n\n")
     else:
         c.write("#define beginState " + new_file_name + "IDLE\n\n")
+        c.write("//#define " + new_file_name + "T\n")
+        c.write("#ifndef " + new_file_name + "T\n")
+        c.write("#error " + new_file_name + "T is not defined, define this as the parent's timer\n")
+        c.write("#endif\n\n") 
 
     c.write("// VARIABLES\n")
     c.write("static unsigned char state;\n")
@@ -176,13 +180,6 @@ with open(folder + new_file_name + ".cpp", "w") as c:
 
 
 with open(folder + new_file_name + ".h", "w") as h:
-    if smType == "nested":
-        h.write("//#define " + new_file_name + "T\n")
-        h.write("#ifndef " + new_file_name + "T\n")
-        h.write("#error " + new_file_name + "T is not defined, define this as the parent's timer\n")
-        h.write("#endif\n\n") 
-
-
     h.write("enum " + new_file_name + "States {")
     h.write("\n\t" + new_file_name + "IDLE")
     for state in states:
