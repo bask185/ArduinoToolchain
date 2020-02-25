@@ -69,7 +69,8 @@ Once the 'beginState' is defined your project is compile-able. From this point o
 ---
 # The new Folder
 An assembled project folder may look like this:
-![project folder](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/project_folder.png)
+
+![project folder](https://raw.githubusercontent.com/bask185/State-Machine-Scripts/master/images/project_folder.png?raw=true)
 
 This example has 2 state-machines included. The files marked with the red arrows are to be programmed by us.
 
