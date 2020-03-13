@@ -106,6 +106,7 @@ with open(folder + new_file_name + ".cpp", "w") as c:
     c.write("// HEADER FILES\n")
     c.write('#include <Arduino.h>\n')
     c.write('#include "' + new_file_name + '.h"\n')
+    c.write('#include "serial.h"\n')
     c.write('#include "src/basics/timers.h"\n')
     c.write('#include "src/basics/io.h"\n\n')
 

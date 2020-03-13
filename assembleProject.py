@@ -88,6 +88,8 @@ def copyAllFiles():
     shutil.move("timers.tab"        , folder)
     shutil.copy("updateIO.py"       , folder)
     shutil.copy("io.tab"            , folder)
+    shutil.copy("serial.cpp"        , folder)
+    shutil.copy("serial.h"          , folder)
 
 def assembleMain():
     folder2 = folder[2:]
