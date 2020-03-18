@@ -1,0 +1,7 @@
+10	led1	OUTPUT
+12	blinkLed1	OUTPUT
+13	blinkLed2	OUTPUT
+2	detector1	OUTPUT
+3	detector2	OUTPUT
+4	detector3	OUTPUT
+5	detector4	OUTPUT

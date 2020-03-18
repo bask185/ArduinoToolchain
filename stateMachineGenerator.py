@@ -115,7 +115,7 @@ with open(folder + new_file_name + ".cpp", "w") as c:
     c.write("#define entryState if(runOnce) \n")
     c.write("#define onState runOnce = false; if(!runOnce)\n")
     c.write("#define exitState if(!exitFlag) return false; else\n")
-    c.write("#define State(x) break; case x: if(x##F())\n")
+    c.write("#define State(x) break; case x: if(runOnce) Serial.println(#x); if(x##F())\n")
     c.write("#define STATE_MACHINE_BEGIN if(!enabled) { \\\n")
     c.write("\tif(!"+ new_file_name +"T) enabled = true; } \\\n")
     c.write("else switch(state){\\\n")
@@ -135,7 +135,7 @@ with open(folder + new_file_name + ".cpp", "w") as c:
         c.write("#endif\n\n") 
 
     c.write("// VARIABLES\n")
-    c.write("static unsigned char state;\n")
+    c.write("static unsigned char state = beginState;\n")
     c.write("static bool enabled = true, runOnce = true, exitFlag = false;\n\n")
 
     c.write("// FUNCTIONS\n")
@@ -154,9 +154,12 @@ with open(folder + new_file_name + ".cpp", "w") as c:
     for state in states:    # print all state functions
         c.write("\nstateFunction(" + state + ") {\n")
         c.write("\tentryState {\n\t\t\n\t")
-        c.write("}\n\tonState {\n\n\t\texitFlag = true; }\n")
-        c.write("\texitState {\n\t")
-        c.write("\treturn true; } }\n\n")
+        c.write("}\n\tonState {\n\n\t\texitFlag = true;\n")
+        c.write("\t}\n")
+        c.write("\texitState {\n\n")
+        c.write("\t\treturn true;\n")
+        c.write("\t}\n")
+        c.write("}\n")
 
     c.write('\n// STATE MACHINE\n')
     c.write("extern bool "+ new_file_name +"(void) {\n")
