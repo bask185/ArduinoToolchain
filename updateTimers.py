@@ -57,7 +57,7 @@ _1ms += 1;
 
 
 // 10ms timers
-if(!(_1ms % 10)) { _1ms = 0; _10ms += 1;\n\n""")
+if(_1ms == 10)) { _1ms = 0; _10ms += 1;\n\n""")
     for index, timer in enumerate(timers):
         if int(timeBases[index]) == 10:
             scheduler.write('\tif(' + timer + ') ' + timer + '--;\n')
@@ -66,7 +66,7 @@ if(!(_1ms % 10)) { _1ms = 0; _10ms += 1;\n\n""")
 
 
 // 100ms timers
-if(!(_10ms % 10)) { _10ms = 0; _100ms += 1;\n\n""")
+if(_10ms == 10)) { _10ms = 0; _100ms += 1;\n\n""")
     for index, timer in enumerate(timers):
         if int(timeBases[index]) == 100:
             scheduler.write('\tif(' + timer + ') ' + timer + '--;\n')
@@ -75,7 +75,7 @@ if(!(_10ms % 10)) { _10ms = 0; _100ms += 1;\n\n""")
 
 
 //1000ms timers
-if(!(_100ms % 10)) { _100ms = 0;\n\n""")
+if(_100ms == 10)) { _100ms = 0;\n\n""")
     for index, timer in enumerate(timers):
         if int(timeBases[index]) == 1000:
             scheduler.write('\tif(' + timer + ') ' + timer + '--;\n')
