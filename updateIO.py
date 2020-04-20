@@ -27,11 +27,10 @@ with open("io.tab", "r") as f:
 		# tab = line.split('\t','\t\t','\t\t\t','\t\t\t\t','\s*')
 		tab = line.split('\t')
 		if tab[0] != '\n':				# if not newline char
-			if tab[0][:-2] == "MCP":	# if not MCP
+			if tab[0][:-2] == "MCP":	# if MCP
 				mcpIO += 1
 				
 			elif mcpIO == 1:
-
 				mcpIO0 += 1
 			elif mcpIO == 2:
 				mcpIO1 += 1
@@ -107,7 +106,7 @@ with open("src/basics/io.h", "w") as f:
 		for i in range(0, mcpIO5):
 			f.write("{} {} {}".format("\n#define", names[i + ioCounter], int(indices[i + ioCounter])+80))
 	
-	f.write('\n')
+	# f.write('\n')
 	if mcpIO > 6:
 		ioCounter += mcpIO5
 		for i in range(0, mcpIO6):
