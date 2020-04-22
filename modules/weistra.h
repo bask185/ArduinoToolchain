@@ -1,17 +1,17 @@
 #include <Arduino.h>
 
-class Weista {
+class Weistra {
 public:
-    Weistra(byte);
+    Weistra(unsigned char);
     void begin();
     void update();
-    void setSpeed(byte);
-}
+    void setSpeed(unsigned char);
 
 private:
-    uint16_t intervalTime;
-    byte dutyCycle;
-    byte trackPin;
-    byte *port;
+    unsigned int  intervalTime;
+    unsigned char dutyCycle;
+    unsigned char trackPin;
+
+    volatile uint8_t *portx_p;
 };
 
