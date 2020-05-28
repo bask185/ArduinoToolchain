@@ -1,16 +1,1 @@
-10	led1	OUTPUT
-12	blinkLed1	OUTPUT
-13	blinkLed2	OUTPUT
-2	detector1	OUTPUT
-3	detector2	OUTPUT
-4	detector3	OUTPUT
-5	detector4	OUTPUT
-
-MCP1
-0	led4	OUTPUT
-1	led5	OUTPUT
-2	foobar	INPUT
-
-MCP2
-0	ledWhatever	OUTPUT
-4	someButton	INPUT_PULLUP
+redLight	13	OUTPUT
