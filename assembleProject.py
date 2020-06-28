@@ -143,9 +143,10 @@ extern void processRoundRobinTasks(void) {
 
 		case 1:
 		/* fill in a task */
-		break;""")
+		break;
+	}
+}""")
 
-        rr.write(" } }")
         rr.close()
 
 

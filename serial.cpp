@@ -10,6 +10,7 @@ extern void readSerialBus() {
 	else {
 		serialByte = 0;
 	}
+}
 
 /*	switch(serialByte) { // your own serial protocol can be handled here.
 	case //const :
@@ -21,3 +22,4 @@ extern void readSerialBus() {
 	case //const2 :
 	break;
 }
+*/

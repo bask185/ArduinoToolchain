@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 8	detectorLeft	INPUT
 9   detectorRight	INPUT
 3   trackPower	OUTPUT
 2	dirLeft	OUTPUT
 4	dirRight	OUTPUT
+=======
+redLight	13	OUTPUT
+>>>>>>> 95bd5722f0ba37a9289a9961d33b0d819d4cfcff

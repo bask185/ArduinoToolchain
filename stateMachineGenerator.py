@@ -29,13 +29,6 @@ def getStateMachines() : # function tested!
 
 stateDiagrams = getStateMachines()
 
-# for index, diagram in enumerate(stateDiagrams):
-#     print("{} = {}".format(index, diagram))
-# retValue = input("select state machine\n")
-# file_name = stateDiagrams[int(retValue)]
-
-
-
 arrowsOut1 = []
 arrowsIn1 = []
 arrowsOut = []
@@ -45,15 +38,7 @@ states = []
 
 file_name = sys.argv[1]
 smType = sys.argv[2] # 'c' or 'assembly'
-#print("hello " + file_name)
-#print("world " + smType)
 
-
-#smType = "Is this state machine a 'main' or 'nested' type state machine?"
-# print(smType)
-# while smType != "main" and smType != "nested":
-#     smType = input()
-# print(smType + " type selected")
 if smType == "main":
     file_name = "mainStateMachines/" + file_name
 
@@ -77,14 +62,6 @@ for arrow in data: # arrows
 for state in states1:
     state = state.split('<')
     states.append(state[0][1:])
-    
-#for arrowOut in arrowsOut1:
-#    print(arrowOut)
-
-#print("\r\n")
-
-#for arrowIn in arrowsIn1:
-    #print(arrowIn)
 
 f.close()
 
