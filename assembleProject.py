@@ -166,11 +166,14 @@ def createFolders():
         os.makedirs(folder + "/src/modules")
         os.makedirs(folder + "/src/basics")
         os.makedirs(folder + "/stateDiagrams")
+        os.makedirs(folder + "/.vscode"
         return folder
     except OSError:
         print("ERROR FOLDER EXISTS")
         pass
 
+# def jsonTasks():
+#     return
 
 ### BEGIN SCRIPT ###
 
@@ -197,6 +200,8 @@ copyAllFiles()
 assembleMain()
 
 assembleRoundRobinTasks()
+
+# assemble jsonTasks()
 
 os.chdir(folder)
 os.system("python updateTimers.py")
