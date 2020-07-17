@@ -166,7 +166,7 @@ def createFolders():
         os.makedirs(folder + "/src/modules")
         os.makedirs(folder + "/src/basics")
         os.makedirs(folder + "/stateDiagrams")
-        os.makedirs(folder + "/.vscode"
+        os.makedirs(folder + "/.vscode")
         return folder
     except OSError:
         print("ERROR FOLDER EXISTS")
