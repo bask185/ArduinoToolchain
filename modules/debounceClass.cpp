@@ -13,7 +13,6 @@ unsigned char Debounce::readInput() {
 	return retValue; }
 
 void Debounce::debounceInputs() {
-	static bool oldSample = false, statePrev = false;
 	bool newSample = digitalRead(pin);
 
 	if(newSample == oldSample) {	// if the same state is detected atleast twice in 20ms...

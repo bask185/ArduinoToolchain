@@ -16,6 +16,8 @@ public:
 private:
 	unsigned char state;
 	unsigned char pin; 
+	bool oldSample = false;
+	bool statePrev = false;
 };
 	
 #endif
