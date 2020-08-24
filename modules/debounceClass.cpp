@@ -1,7 +1,8 @@
 #include "debounceClass.h"
 Debounce::Debounce(unsigned char _pin) {
 	pinMode(_pin, INPUT_PULLUP); // take note I use a pull-up resistor by default
-	pin = _pin; }
+	pin = _pin;
+}
 
 unsigned char Debounce::readInput() {
 	byte retValue = state;
@@ -31,7 +32,6 @@ void Debounce::debounceInputs() {
 	}
 
 	oldSample = newSample;
-	return 255;
 }
 
 
