@@ -1,0 +1,29 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "update timers",
+            "type": "shell",
+            "command": "python updateTimers.py",
+            "problemMatcher": []
+        },
+        {
+            "label": "update io",
+            "type": "shell",
+            "command": "python updateIO.py",
+            "problemMatcher": []
+        },
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "./build.sh"
+        },
+        {
+            "label": "upload",
+            "type": "shell",
+            "command": "./upload.sh"
+        }
+    ]
+}

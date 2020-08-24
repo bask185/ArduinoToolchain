@@ -4,6 +4,8 @@ import os
 import shutil, errno
 import platform
 
+projectName = ""
+
 def getStateMachines(type) : # function tested!
     Files = []
     if platform.system() == "Windows":
@@ -90,6 +92,7 @@ def copyAllFiles():
     shutil.copy("io.tab"            , folder)
     shutil.copy("serial.cpp"        , folder)
     shutil.copy("serial.h"          , folder)
+    shutil.copy("tasks.json"        , folder +  "/.vscode/" )
 
 def assembleMain():
     folder2 = folder[2:]
@@ -156,9 +159,13 @@ extern void processRoundRobinTasks(void) {
         rr.write("updateInputs();")
         rr.close()
 
+def  getProjectName():
+    projectName = input("Type name of new project\n")
+    return projectName
+
 def createFolders():
-    folder = input("Type name of new project\n")
-    folder = "../" + folder
+
+    folder = "../" + projectName
     try:
         print(folder)
         os.makedirs(folder)
@@ -172,10 +179,36 @@ def createFolders():
         print("ERROR FOLDER EXISTS")
         pass
 
+def assembleBuildScripts():
+    with open(folder + "/build.sh", "w") as script:
+        script.write("#!/bin/bash\n")
+        script.write("python.exe updateTimers.py\n")
+        script.write("python.exe updateIO.py\n")
+        script.write("arduino-cli compile -b arduino:avr:nano ~/Documents/software/")
+        script.write( projectName + "\n" )
+        script.write( "exit" )
+        script.close()
+
+    with open(folder + "/upload.sh", "w") as script:
+        script.write("#!/bin/bash\n")
+        script.write("python.exe updateTimers.py\n")
+        script.write("python.exe updateIO.py\n")
+        script.write('echo "COMPILING"\n')
+        script.write("arduino-cli compile -b arduino:avr:nano ~/Documents/software/")
+        script.write( projectName + "\n" )
+        script.write( 'echo "UPLOADING"\n')
+        script.write( 'arduino-cli upload -b arduino:avr:nano:cpu=atmega328old -p COM3 -i ~/Documents/software/' + projectName + '/' + projectName + '.arduino.avr.nano.hex\n')
+        script.write( 'rm *.hex *.elf\n')
+        script.write( "exit" )
+        script.close()
+
+    
+
 # def jsonTasks():
 #     return
 
 ### BEGIN SCRIPT ###
+projectName = getProjectName()
 
 folder = createFolders()
 
@@ -201,7 +234,7 @@ assembleMain()
 
 assembleRoundRobinTasks()
 
-# assemble jsonTasks()
+assembleBuildScripts()
 
 os.chdir(folder)
 os.system("python updateTimers.py")
