@@ -10,67 +10,53 @@
 #define movingLeft 0
 #define movingRight 1
 
-void ServoSweep( byte _servoPin, byte _inputPin, byte _min, byte _max, byte _speed ) {                   // constructor 1
+ServoSweep::ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed ) {                   // constructor 1
     
     servoPin = _servoPin ;
-    inputPin = _inputPin ;
     servoSpeed = _speed ;
     servoMin = _min ;
     servoMax = _max ;
-
-    if( digitalRead( inputPin ) == true ) state = movingLeft ;
-    else                                  state = movingRight ;
-    
+   
     middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;               // start with middle position
 
-    pos = middlePosition
+    pos = middlePosition ;
 
-    pinMode( inputPin, INPUT_PULLUP ) ;
     servo.write( pos ) ;
     servo.attach( servoPin ) ;
 }
 
-void ServoSweep( byte _servoPin, byte _inputPin, byte _min, byte _max, byte _speed, byte _relayPin ) {      // constructor 2
+ServoSweep::ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed, byte _relayPin ) {      // constructor 2
     
     servoPin = _servoPin ;
-    inputPin = _inputPin ;
     servoSpeed = _speed ;
     servoMin = _min ;
     servoMax = _max ;
 
-    if( digitalRead( inputPin ) == true ) state = movingLeft ;
-    else                                  state = movingRight ;
-
     middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;
 
-    pos = middlePosition
+    pos = middlePosition ;
 
-    pinMode( inputPin, INPUT_PULLUP ) ;
     servo.write( pos ) ;
     servo.attach( servoPin ) ;
 
     relayPresent = 1;
     relayPin = _relayPin ;
+    pinMode( relayPin, OUTPUT ) ;
+
 }
 
 
-void ServoSweep::sweep ( ) {
+void ServoSweep::sweep ( bool state ) {
     unsigned long currentTime = millis() ;
 
     if( currentTime > timeToRun ) {
         timeToRun = currentTime + servoSpeed ;
 
-        switch( state ) {
-
-        case movingRight:
+        if( state ) {
             if( pos < servoMax ) pos ++ ;
-            if( digitalRead( inputPin ) ) state = movingLeft ;
-            break ;
-
-        case movingLeft:
+        }
+        else {
             if( pos > servoMin ) pos -- ;
-            if( !digitalRead( inputPin ) ) state = movingRight ;
-            break ;
         }
 
         if( prevPos != pos ) {
@@ -80,7 +66,6 @@ void ServoSweep::sweep ( ) {
                 if( pos < middlePosition ) digitalWrite( relayPin,  LOW ) ;
                 else                       digitalWrite( relayPin, HIGH ) ;
             }
-
             servo.write( pos ) ;
         }
     }

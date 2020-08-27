@@ -4,15 +4,13 @@
 class ServoSweep {
 
 public:
-    ServoSweep( byte _servoPin, byte _inputPin, byte _min, byte _max, byte _speed  ) ;        // constructor 1
-    //ServoSweep( byte _servoPin, byte _inputPin, byte _min, byte _max, byte _speed, _relayPin ) ;  // constructor 2
-    void sweep();
+    ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed  ) ;        // constructor 1
+    ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed, byte _relayPin ) ;  // constructor 2
+    void sweep( bool state );
 
 private:
     Servo servo ;
     unsigned long timeToRun ;
-    byte inputPin ;
-    byte state ;
     byte pos ;
     byte prevPos;
     byte servoPin ;
