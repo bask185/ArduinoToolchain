@@ -46,7 +46,7 @@ ServoSweep::ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed, byte 
 }
 
 
-void ServoSweep::sweep ( bool state ) {
+void ServoSweep::sweep () {
     unsigned long currentTime = millis() ;
 
     if( currentTime > timeToRun ) {
@@ -69,4 +69,8 @@ void ServoSweep::sweep ( bool state ) {
             servo.write( pos ) ;
         }
     }
+}
+
+void ServoSweep::setState( uint8_t _state ) {
+    state = _state ;
 }
