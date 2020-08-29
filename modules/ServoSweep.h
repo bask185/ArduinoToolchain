@@ -7,7 +7,7 @@ public:
     ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed  ) ;        // constructor 1
     ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed, byte _relayPin ) ;  // constructor 2
     void sweep( );
-    void setState( bool _state );
+    void setState( uint8_t _state );
 
 private:
     Servo servo ;
