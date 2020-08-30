@@ -10,9 +10,8 @@
 #define movingLeft 0
 #define movingRight 1
 
-ServoSweep::ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed ) {                   // constructor 1
-    
-    servoPin = _servoPin ;
+ServoSweep::ServoSweep( byte _min, byte _max, byte _speed ) {                   // constructor 1
+
     servoSpeed = _speed ;
     servoMin = _min ;
     servoMax = _max ;
@@ -20,14 +19,10 @@ ServoSweep::ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed ) {   
     middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;               // start with middle position
 
     pos = middlePosition ;
-
-    servo.write( pos ) ;
-    servo.attach( servoPin ) ;
 }
 
-ServoSweep::ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed, byte _relayPin ) {      // constructor 2
+ServoSweep::ServoSweep( byte _min, byte _max, byte _speed, byte _relayPin ) {      // constructor 2
     
-    servoPin = _servoPin ;
     servoSpeed = _speed ;
     servoMin = _min ;
     servoMax = _max ;
@@ -36,9 +31,6 @@ ServoSweep::ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed, byte 
 
     pos = middlePosition ;
 
-    servo.write( pos ) ;
-    servo.attach( servoPin ) ;
-
     relayPresent = 1;
     relayPin = _relayPin ;
     pinMode( relayPin, OUTPUT ) ;
@@ -46,11 +38,11 @@ ServoSweep::ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed, byte 
 }
 
 
-void ServoSweep::sweep () {
-    unsigned long currentTime = millis() ;
+uint8_t ServoSweep::sweep () {
+    //currentTime = millis() ;
 
-    if( currentTime > timeToRun ) {
-        timeToRun = currentTime + servoSpeed ;
+    if( millis() > timeToRun ) {
+        timeToRun = millis() + servoSpeed ;
 
         if( state ) {
             if( pos < servoMax ) pos ++ ;
@@ -66,7 +58,10 @@ void ServoSweep::sweep () {
                 if( pos < middlePosition ) digitalWrite( relayPin,  LOW ) ;
                 else                       digitalWrite( relayPin, HIGH ) ;
             }
-            servo.write( pos ) ;
+            return pos ;
+        }
+        else {
+            return 0 ;
         }
     }
 }

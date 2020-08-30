@@ -1,19 +1,19 @@
 #include <Arduino.h>
-#include <Servo.h>
+//#include <Servo.h>
 
 class ServoSweep {
 
 public:
-    ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed  ) ;        // constructor 1
-    ServoSweep( byte _servoPin, byte _min, byte _max, byte _speed, byte _relayPin ) ;  // constructor 2
-    void sweep( );
+    ServoSweep( byte _min, byte _max, byte _speed  ) ;        // constructor 1
+    ServoSweep( byte _min, byte _max, byte _speed, byte _relayPin ) ;  // constructor 2
+    uint8_t sweep( );
     void setState( uint8_t _state );
 
 private:
-    Servo servo ;
+   // Servo servo ;
     unsigned long timeToRun ;
     byte pos ;
-    bool state ;
+    byte state ;
     byte prevPos;
     byte servoPin ;
     byte servoSpeed ;
@@ -22,6 +22,6 @@ private:
     byte middlePosition ;
     byte relayPresent ;
     byte relayPin ;
+    unsigned long currentTime = millis() ;
 
 } ;
-
