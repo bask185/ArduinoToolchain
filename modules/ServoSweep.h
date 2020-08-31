@@ -4,24 +4,23 @@
 class ServoSweep {
 
 public:
-    ServoSweep( byte _min, byte _max, byte _speed  ) ;        // constructor 1
-    ServoSweep( byte _min, byte _max, byte _speed, byte _relayPin ) ;  // constructor 2
+    ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed  ) ;        // constructor 1
+    ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _relayPin ) ;  // constructor 2
     uint8_t sweep( );
     void setState( uint8_t _state );
 
 private:
    // Servo servo ;
     unsigned long timeToRun ;
-    byte pos ;
-    byte state ;
-    byte prevPos;
-    byte servoPin ;
-    byte servoSpeed ;
-    byte servoMin ;
-    byte servoMax  ;
-    byte middlePosition ;
-    byte relayPresent ;
-    byte relayPin ;
+    uint8_t pos ;
+    uint8_t state ;
+    uint8_t prevPos;
+    uint8_t servoPin ;
+    uint8_t servoSpeed ;
+    uint8_t servoMin ;
+    uint8_t servoMax  ;
+    uint8_t middlePosition ;
+    uint8_t relayPresent ;
+    uint8_t relayPin ;
     unsigned long currentTime = millis() ;
-
 } ;

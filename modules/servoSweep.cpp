@@ -1,28 +1,22 @@
-
-
-// enum servoStates {
-//     movingLeft,
-//     movingRight,
-// } ;
-
 #include "ServoSweep.h"
 
 #define movingLeft 0
 #define movingRight 1
 
-ServoSweep::ServoSweep( byte _min, byte _max, byte _speed ) {                   // constructor 1
-
+ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed ) {                   // constructor 1
+    
+    servoPin = _servoPin ;
     servoSpeed = _speed ;
     servoMin = _min ;
     servoMax = _max ;
    
     middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;               // start with middle position
-
     pos = middlePosition ;
 }
 
-ServoSweep::ServoSweep( byte _min, byte _max, byte _speed, byte _relayPin ) {      // constructor 2
+ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _relayPin ) {      // constructor 2
     
+    servoPin = _servoPin ;
     servoSpeed = _speed ;
     servoMin = _min ;
     servoMax = _max ;
@@ -33,16 +27,23 @@ ServoSweep::ServoSweep( byte _min, byte _max, byte _speed, byte _relayPin ) {   
 
     relayPresent = 1;
     relayPin = _relayPin ;
-    pinMode( relayPin, OUTPUT ) ;
+}
 
+void ServoSweep::begin() {
+    if( servoPin != 255) {
+        servo.write( pos ) ;
+        servo.attach( servoPin ) ;
+    }
+
+    if( relayPresent ) pinMode( relayPin, OUTPUT ) ;
 }
 
 
-uint8_t ServoSweep::sweep () {
-    //currentTime = millis() ;
+uint8_t ServoSweep::sweep ( uint8_t state ) {
+    unsigned long currentTime = millis() ;
 
-    if( millis() > timeToRun ) {
-        timeToRun = millis() + servoSpeed ;
+    if( currentTime > timeToRun ) {
+        timeToRun = currentTime + servoSpeed ;
 
         if( state ) {
             if( pos < servoMax ) pos ++ ;
@@ -54,18 +55,15 @@ uint8_t ServoSweep::sweep () {
         if( prevPos != pos ) {
             prevPos  = pos ;
 
-            if( relayPresent == 1 ) {
+            if( relayPresent ) {
                 if( pos < middlePosition ) digitalWrite( relayPin,  LOW ) ;
                 else                       digitalWrite( relayPin, HIGH ) ;
             }
+            if( servoPin != 255 ) servo.write( pos ) ;
             return pos ;
         }
         else {
             return 0 ;
         }
     }
-}
-
-void ServoSweep::setState( uint8_t _state ) {
-    state = _state ;
 }
