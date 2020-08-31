@@ -1,5 +1,5 @@
 #include <Arduino.h>
-//#include <Servo.h>
+#include <Servo.h>
 
 class ServoSweep {
 
@@ -8,9 +8,10 @@ public:
     ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _relayPin ) ;  // constructor 2
     uint8_t sweep( );
     void setState( uint8_t _state );
+    void begin( );
 
 private:
-   // Servo servo ;
+    Servo servo ;
     unsigned long timeToRun ;
     uint8_t pos ;
     uint8_t state ;

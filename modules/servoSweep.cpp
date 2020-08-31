@@ -38,12 +38,13 @@ void ServoSweep::begin() {
     if( relayPresent ) pinMode( relayPin, OUTPUT ) ;
 }
 
+void ServoSweep::setState( uint8_t _state ) {
+    state = _state ;
+}
 
-uint8_t ServoSweep::sweep ( uint8_t state ) {
-    unsigned long currentTime = millis() ;
-
-    if( currentTime > timeToRun ) {
-        timeToRun = currentTime + servoSpeed ;
+uint8_t ServoSweep::sweep ( ) {
+    if( millis() > timeToRun ) {
+        timeToRun = millis() + servoSpeed ;
 
         if( state ) {
             if( pos < servoMax ) pos ++ ;
