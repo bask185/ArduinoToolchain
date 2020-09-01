@@ -68,10 +68,11 @@ uint8_t ServoSweep::sweep ( ) {
             if( pos > servoMin ) pos -- ;
         }
 
-        if( ( pos == servoMax || pos == servoMin ) && turnOff == 1 ) servo.detach( ) ;
 
         if( prevPos != pos ) {
             prevPos  = pos ;
+
+            if( ( pos == servoMax || pos == servoMin ) && turnOff == 1 ) servo.detach( ) ;
 
             if( relayPresent ) {
                 if( pos < middlePosition ) digitalWrite( relayPin,  LOW ) ;
