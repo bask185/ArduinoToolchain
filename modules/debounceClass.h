@@ -21,7 +21,7 @@ private:
 };
 	
 #endif
-
+/*
 #include "debounceClass.h"
 
 const int pin3 = 3 ;
@@ -70,3 +70,4 @@ void loop() {
 	}
 }
 
+*/
