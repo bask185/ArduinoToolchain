@@ -8,14 +8,14 @@ void Weistra::begin() {
     pinMode(trackPin, OUTPUT);
 
     byte port   = digitalPinToPort( trackPin );
-    trackPin    = digitalPinToBitMask( trackPin ); // trackPin starts as 13, but ends as 32?
+    trackPin    = digitalPinToBitMask( trackPin );
     portx_p     = portOutputRegister( port );
 
 }
 
 void Weistra::update() {
-    static byte counter = 0;
-    static uint32_t prevTime = 0;
+    // static byte counter = 0;
+    // static uint32_t prevTime = 0;
 
     if( portx_p != 0 ) {
         uint32_t currentTime = micros()/* & 0x0000FFFF*/; // we only use the last 2 bytes of micros()

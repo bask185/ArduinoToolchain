@@ -12,6 +12,9 @@ private:
     unsigned char dutyCycle;
     unsigned char trackPin;
 
+    uint32_t prevTime;
+    uint8_t counter;
+
     volatile uint8_t *portx_p;
 };
 
