@@ -491,10 +491,6 @@ ISR(TIMER1_COMPB_vect) {
 			} 
 		} 
 	}
-
-	else {
-		ISR_state = 0; 
-	} 
 } // toggle pin 8 and 9 for direction*/
 
 
