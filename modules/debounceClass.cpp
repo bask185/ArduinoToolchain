@@ -7,8 +7,8 @@ Debounce::Debounce(unsigned char _pin) {
 unsigned char Debounce::readInput() {
 	byte retValue = state;
 
-	if(state == RISING)  state = ON; // take note I use a pull-up resistor
-	if(state == FALLING) state = OFF;  // rising or falling may be returned only once
+	if(state == RISING)  state = HIGH; // take note I use a pull-up resistor
+	if(state == FALLING) state = LOW;  // rising or falling may be returned only once
 
 	return retValue; }
 
@@ -25,8 +25,8 @@ void Debounce::debounceInputs() {
 		}
 
 		else {						// or if there is no flank change return PRESSED or RELEASED
-			if(newSample)	state = ON; 
-			else			state = OFF;
+			if(newSample)	state = HIGH; 
+			else			state = LOW;
 		}
 	}
 
