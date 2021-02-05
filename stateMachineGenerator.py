@@ -94,9 +94,9 @@ with open(folder + new_file_name + ".cpp", "w") as c:
     c.write("#define exitState if(!exitFlag) return false; else\n")
     c.write("#define State(x) break; case x: if(runOnce) Serial.println(#x); if(x##F())\n")
     c.write("#define STATE_MACHINE_BEGIN if(!enabled) { \\\n")
-    c.write("\tif(!"+ new_file_name +"T) enabled = true; } \\\n")
+    c.write("    if(!"+ new_file_name +"T) enabled = true; } \\\n")
     c.write("else switch(state){\\\n")
-    c.write('\tdefault: Serial.println("unknown state executed, state is idle now"); state = ' + new_file_name + 'IDLE; case ' + new_file_name + 'IDLE: return true;\n')
+    c.write('    default: Serial.println("unknown state executed, state is idle now"); state = ' + new_file_name + 'IDLE; case ' + new_file_name + 'IDLE: return true;\n')
     c.write("#define STATE_MACHINE_END break;}return false;\n\n\n")
 
     if smType == "main":
@@ -116,55 +116,72 @@ with open(folder + new_file_name + ".cpp", "w") as c:
     c.write("static bool enabled = true, runOnce = true, exitFlag = false;\n\n")
 
     c.write("// FUNCTIONS\n")
-    c.write("extern void " + new_file_name + "Init(void) { state = beginState; }\n")
-    c.write("extern byte " + new_file_name + "GetState(void) { return state;}\n")
-    c.write("extern void " + new_file_name + "SetState(unsigned char _state) { state = _state; runOnce = true; }\n")
-    c.write("static void nextState(unsigned char _state, unsigned char _interval) {\n")
-    c.write("\trunOnce = true;\n")
-    c.write("\texitFlag = false;\n")
-    c.write("\tif(_interval) {\n")
-    c.write("\t\tenabled = false;\n")
-    c.write("\t\t" + new_file_name + "T = _interval; } \n")
-    c.write("\tstate = _state; }\n\n")
+    c.write("extern void " + new_file_name + "Init(void)\n")
+    c.write("{\n")
+    c.write("    state = beginState ;\n")
+    c.write("}\n\n")
+    
+    c.write("extern byte " + new_file_name + "GetState(void)\n")
+    c.write("{\n")
+    c.write("    return state ;\n")
+    c.write("}\n\n")
+    
+    c.write("extern void " + new_file_name + "SetState(unsigned char _state)\n")
+    c.write("{\n")
+    c.write("    state = _state ;\n")
+    c.write("    runOnce = true ;\n")
+    c.write("}\n\n")
+    
+    c.write("static void nextState(unsigned char _state, unsigned char _interval)\n")
+    c.write("{\n")
+    c.write("    runOnce = true ;\n")
+    c.write("    exitFlag = false ;\n")
+    c.write("    if(_interval)\n")
+    c.write("    {\n")
+    c.write("        enabled = false;\n")
+    c.write("        " + new_file_name + "T = _interval ;\n")
+    c.write("    }\n")
+    c.write("    state = _state ;\n")
+    c.write("}\n\n")
 
     c.write("// STATE FUNCTIONS")
     for state in states:    # print all state functions
         c.write("\nstateFunction(" + state + ") {\n")
-        c.write("\tentryState {\n\t\t\n\t")
-        c.write("}\n\tonState {\n\n\t\texitFlag = true;\n")
-        c.write("\t}\n")
-        c.write("\texitState {\n\n")
-        c.write("\t\treturn true;\n")
-        c.write("\t}\n")
+        c.write("    entryState {\n        \n    ")
+        c.write("}\n    onState {\n\n        exitFlag = true;\n")
+        c.write("    }\n")
+        c.write("    exitState {\n\n")
+        c.write("        return true;\n")
+        c.write("    }\n")
         c.write("}\n")
 
     c.write('\n// STATE MACHINE\n')
     c.write("extern bool "+ new_file_name +"(void) {\n")
-    c.write("\tSTATE_MACHINE_BEGIN\n\n")
+    c.write("    STATE_MACHINE_BEGIN\n\n")
     i = -1
     for state in states:
         i = i + 1
-        c.write("\tState(" + state + ") {")
+        c.write("    State(" + state + ") {")
         nArrows = 0
         for j in range(0, len(arrowsOut1)):
             if(int(arrowsOut1[j]) == i):
                 nArrows += 1
-                c.write("\n\t\tnextState(" + states[int(arrowsIn1[j])] + ", 0);")
+                c.write("\n        nextState(" + states[int(arrowsIn1[j])] + ", 0);")
         if nArrows == 0:
-            c.write("\n\t\tnextState(" + new_file_name + "IDLE, 0);")
+            c.write("\n        nextState(" + new_file_name + "IDLE, 0);")
         c.write(" }\n\n")
-    c.write("\tSTATE_MACHINE_END\n")
+    c.write("    STATE_MACHINE_END\n")
     # if smType == "nested":
-    #     c.write("\n\treturn false; }\n")
+    #     c.write("\n    return false; }\n")
     # else:
     c.write("}\n")
 
 
 with open(folder + new_file_name + ".h", "w") as h:
     h.write("enum " + new_file_name + "States {")
-    h.write("\n\t" + new_file_name + "IDLE")
+    h.write("\n    " + new_file_name + "IDLE")
     for state in states:
-        h.write(",\n\t"+ state)
+        h.write(",\n    "+ state)
     h.write(" };\n\n")
     
     h.write("extern bool " + new_file_name + "(void); \n")
