@@ -86,18 +86,21 @@ def pickModules():
     #clear()
 
 def copyAllFiles():
-    shutil.copy("updateTimers.py"   , folder)
-    shutil.move("timers.tab"        , folder)
+    #shutil.copy("updateTimers.py"   , folder)
+    #shutil.move("timers.tab"        , folder)
     shutil.copy("updateIO.py"       , folder)
     shutil.copy("io.tab"            , folder)
-    shutil.copy("serial.cpp"        , folder)
-    shutil.copy("serial.h"          , folder)
+    #shutil.copy("serial.cpp"        , folder)
+    #shutil.copy("serial.h"          , folder)
     shutil.copy("tasks.json"        , folder +  "/.vscode/" )
+    shutil.copy("macros.h"          , folder +  "/src/basics/" )
+    shutil.copy("stateMachineClass.h"   , folder +  "/src/basics/" )
+    shutil.copy("stateMachineClass.cpp" , folder +  "/src/basics/" )
 
 def assembleMain():
     folder2 = folder[2:]
     with open(folder + "/" + folder2 + ".ino", "w") as main:             #main.c
-        main.write('#include "src/basics/timers.h"\n')
+        #main.write('#include "src/basics/timers.h"\n')
         main.write('#include "src/basics/io.h"\n')
         main.write('#include "roundRobinTasks.h"\n')
         #main.write('#include " .h"\n') #fill in custom libraries
@@ -106,15 +109,14 @@ def assembleMain():
         for machine in stateMachines:
             main.write('#include "' + machine + '.h"\n')
             
-        main.write("\nvoid setup() {\n")
-        main.write("\tinitTimers();\n")
+        main.write("\nvoid setup()\n{\n")
         main.write("\tinitIO();\n")
         main.write("\tSerial.begin(115200);\n")
         for machine in stateMachines:
             main.write("\t" + machine + "Init();\n")
         main.write("}\n\n")
 
-        main.write("void loop() {\n")
+        main.write("void loop()\n{\n")
         main.write("\tprocessRoundRobinTasks();\n\n")
         
         for machine in stateMachines:
@@ -127,13 +129,13 @@ def assembleRoundRobinTasks():
         rr.write("""
 #include "roundRobinTasks.h"
 #include "src/basics/io.h"
+#include "src/basics/macros.h"
 
 extern void processRoundRobinTasks(void) {
 	static unsigned char taskCounter = 0;
 
 // HIGH PRIORITY ROUND ROBIN TASKS
-	//readSerialBus();
-	//updateIO();
+
 
 // LOW PRIORITY ROUND ROBIN TASKS
 	taskCounter ++;
@@ -155,8 +157,6 @@ extern void processRoundRobinTasks(void) {
 
     with open(folder + "/roundRobinTasks.h", "w") as rr:
         rr.write("void processRoundRobinTasks();\n")
-        rr.write("#define updateIO(); updateOutputs(); \\\n")
-        rr.write("updateInputs();")
         rr.close()
 
 def  getProjectName():
