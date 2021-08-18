@@ -182,7 +182,7 @@ def createFolders():
 def assembleBuildScripts():
     with open(folder + "/build.sh", "w") as script:
         script.write("#!/bin/bash\n")
-        script.write("python.exe updateTimers.py\n")
+        #script.write("python.exe updateTimers.py\n")
         script.write("python.exe updateIO.py\n")
         script.write("arduino-cli compile -b arduino:avr:nano ~/Documents/software/")
         script.write( projectName + "\n" )
@@ -191,7 +191,7 @@ def assembleBuildScripts():
 
     with open(folder + "/upload.sh", "w") as script:
         script.write("#!/bin/bash\n")
-        script.write("python.exe updateTimers.py\n")
+        #script.write("python.exe updateTimers.py\n")
         script.write("python.exe updateIO.py\n")
         script.write('echo "COMPILING"\n')
         script.write("arduino-cli compile -b arduino:avr:nano ~/Documents/software/")
@@ -237,7 +237,7 @@ assembleRoundRobinTasks()
 assembleBuildScripts()
 
 os.chdir(folder)
-os.system("python updateTimers.py")
+#os.system("python updateTimers.py")
 os.system("python updateIO.py")
 
 input("press <ENTER> to close the program")

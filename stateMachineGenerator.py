@@ -84,7 +84,10 @@ with open(folder + new_file_name + ".cpp", "w") as c:
     c.write('#include <Arduino.h>\n')
     c.write('#include "' + new_file_name + '.h"\n')
     c.write('#include "src/basics/macros.h"\n')
-    c.write('#include "src/basics/io.h"\n\n')
+    c.write('#include "src/basics/io.h"\n')
+    c.write('#include "src/basics/stateMachineClass.h"\n\n')
+    
+    c.write("StateMachine sm ;\n\n")
 
     if smType == "main":
         c.write("//#define beginState\n")
@@ -103,9 +106,9 @@ with open(folder + new_file_name + ".cpp", "w") as c:
     c.write("}\n\n")
     
 
-    c.write("// STATE FUNCTIONS")
+    c.write("// STATE FUNCTIONS\n")
     for state in states:    # print all state functions
-        c.write("stateFunction( " + state + " )\n")
+        c.write("StateFunction( " + state + " )\n")
         c.write("{\n")
         c.write("    if( sm.entryState() )\n")
         c.write("    {\n")
@@ -119,8 +122,8 @@ with open(folder + new_file_name + ".cpp", "w") as c:
         c.write("    if( sm.exitState() )\n")
         c.write("    {\n")
         c.write("        \n")
-        c.write("        return sm.stateEnd() ;\n")
         c.write("    }\n")
+        c.write("    return sm.endState() ;\n")
         c.write("}\n\n")
 
     c.write('\n// STATE MACHINE\n')
@@ -144,11 +147,12 @@ with open(folder + new_file_name + ".cpp", "w") as c:
 
 
 with open(folder + new_file_name + ".h", "w") as h:
-    h.write("enum " + new_file_name + "States {")
+    h.write("enum " + new_file_name + "States\n{")
     h.write("\n    " + new_file_name + "IDLE")
     for state in states:
         h.write(",\n    "+ state)
-    h.write(" };\n\n")
+    h.write("\n} ;\n\n")
     
-    h.write("extern bool " + new_file_name + "(void); \n")
+    h.write("extern bool " + new_file_name + "(void) ; \n")
+    h.write("extern void " + new_file_name + "Init(void) ; \n")
     h.close()
