@@ -4,12 +4,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "update timers",
-            "type": "shell",
-            "command": "python updateTimers.py",
-            "problemMatcher": []
-        },
-        {
             "label": "update io",
             "type": "shell",
             "command": "python updateIO.py",

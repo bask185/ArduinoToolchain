@@ -65,7 +65,7 @@ nPin = 0
 
 ### HEADER FILE
 ioCounter = 0
-with open("src/basics/io.h", "w") as f:
+with open("src/io.h", "w") as f:
 	for i in range(0, regularIO):
 		if names[i] != "-":
 			f.write("\n#define " + names[i] + " " + indices[i])
@@ -134,7 +134,7 @@ address = 0x20
 
 
 ## cpp FILE
-with open("src/basics/io.cpp", "w") as f:
+with open("src/io.cpp", "w") as f:
 	f.write('#include <Arduino.h>\n')
 	f.write('#include "io.h"\n')
 	if mcpIO > 0:

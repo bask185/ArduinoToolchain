@@ -13,8 +13,8 @@ def getStateMachines() : # function tested!
     else:
         slash = '/'
     for root, dirs, fileList in os.walk(".", topdown=False):
-        if root == "." + slash + "yEd_stateMachines" :
-            Files = fileList
+        #if root == "." + slash + "yEd_stateMachines" :
+        Files = fileList
 
    
     i = 0
@@ -37,20 +37,22 @@ states1 = []
 states = []
 
 file_name = sys.argv[1]
-smType = sys.argv[2] # 'c' or 'assembly'
+file_name1 = "stateMachines/" + file_name
 
-if smType == "main":
-    file_name = "mainStateMachines/" + file_name
+#smType = sys.argv[2] # 'c' or 'assembly' OBSOLETE
 
-if smType == "nested":
-    file_name = "nestedStateMachines/" + file_name
+#if smType == "main":
+#    file_name = "mainStateMachines/" + file_name
 
-with open(file_name, "r") as f:
+#if smType == "nested":
+#    file_name = "nestedStateMachines/" + file_name
+
+with open(file_name1, "r") as f:
     data = f.readlines()
 
 for line in data: #states
     words = line.split('"')
-    if words.count(' autoSizePolicy=') != 0:
+    if words.count(' autoSizePolicy=') != 0:    # my pythonese is horrible, I search for strings and I basically hardcode everything because I don't know any better
         states1.append(words[36])
 
 for arrow in data: # arrows
@@ -68,34 +70,30 @@ f.close()
 
 
 new_file_name = file_name[:-8]
-folder = new_file_name
-new_file_name = new_file_name.split('/')
-new_file_name = new_file_name[1]
+new_file_name1 = "stateMachines/" + new_file_name
+#new_file_name = new_file_name.split('/')
+#new_file_name = new_file_name[1]
 #print(new_file_name)
 
 
-if smType == "main":
-    folder = "mainStateMachines/"
-else:
-    folder = "nestedStateMachines/"
+
+#folder = "stateMachines/"
+
 #        folder + 
-with open(folder + new_file_name + ".cpp", "w") as c:
+with open(new_file_name1 + ".cpp", "w") as c:
     c.write("// HEADER FILES\n")
     c.write('#include <Arduino.h>\n')
     c.write('#include "' + new_file_name + '.h"\n')
-    c.write('#include "src/basics/macros.h"\n')
-    c.write('#include "src/basics/io.h"\n')
-    c.write('#include "src/basics/stateMachineClass.h"\n\n')
+    c.write('#include "src/macros.h"\n')
+    c.write('#include "src/io.h"\n')
+    c.write('#include "src/stateMachineClass.h"\n\n')
     
-    c.write("StateMachine sm ;\n\n")
+    c.write("static StateMachine sm ;\n\n")
+    c.write("//#define beginState\n")
+    c.write("#ifndef beginState\n")
+    c.write("#error beginState not defined\n")
+    c.write("#endif\n\n")
 
-    if smType == "main":
-        c.write("//#define beginState\n")
-        c.write("#ifndef beginState\n")
-        c.write("#error beginState not yet defined\n")
-        c.write("#endif\n\n")
-    else:
-        c.write("#define beginState " + new_file_name + "IDLE\n\n")
 
     c.write("// VARIABLES\n\n")
 
@@ -146,7 +144,7 @@ with open(folder + new_file_name + ".cpp", "w") as c:
     c.write("}\n")
 
 
-with open(folder + new_file_name + ".h", "w") as h:
+with open(new_file_name1 + ".h", "w") as h:
     h.write("enum " + new_file_name + "States\n{")
     h.write("\n    " + new_file_name + "IDLE")
     for state in states:

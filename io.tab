@@ -1,9 +1,0 @@
-2	dirPin	OUTPUT
-3	stepPin	OUTPUT
-4	enablePin	OUTPUT
-A0	speedPin	INPUT
-5	cwPin	INPUT_PULLUP
-6	ccwPin	INPUT_PULLUP
-7	modePin	INPUT_PULLUP
-8	recordPin	INPUT_PULLUP
-9	SensorPin	INPUT_PULLUP

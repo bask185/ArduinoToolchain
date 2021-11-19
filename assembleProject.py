@@ -6,17 +6,14 @@ import platform
 
 projectName = ""
 
-def getStateMachines(type) : # function tested!
+def getStateMachines() : # function tested!
     Files = []
     if platform.system() == "Windows":
         slash = '\\'
     else:
         slash = '/'
 
-    if type == "main":
-        type = "." + slash +"mainStateMachines"
-    else:
-        type = "." + slash + "nestedStateMachines"
+    type = "." + slash +"stateMachines"
 
     for root, dirs, fileList in os.walk(".", topdown=False):
         if root == type :
@@ -42,20 +39,11 @@ def moveStateMachines(_src, _dest):
             if os.path.exists(dst_file):
                 os.remove(dst_file)
             if "graphml" in src_file:
-                shutil.copy(src_file, "yEd_stateMachines_repo")
-                shutil.move(src_file, dst_dir + "/stateDiagrams") # make me move
+                #shutil.copy(src_file, "yEd_stateMachines_repo")        // no longer copy stuff here, not really needed for this repository
+                shutil.move(src_file, dst_dir + "/stateDiagrams") # make me m ove instead of copy
             else:
-                shutil.move(src_file, dst_dir) # make me move
+                shutil.move(src_file, dst_dir)
 
-def assembleTimersTab():
-    with open("timers.tab", "w") as timers:
-        for machine in stateMachines:
-                timers.write(machine + "T\t10\n")
-        # if errorHandler == 1:
-        #     timers.write("errorT\t2\n")
-        # if lightHandler == 1:
-        #     timers.write("lightHandlerT\t100\n")
-        timers.close()
 
 def pickModules():
     #clear = lambda: os.system('cls') #on Windows System
@@ -76,7 +64,7 @@ def pickModules():
                 print(modules[i] + " picked")
                 src = "modules/" + modules[i]
                 #print(src)
-                dest = folder + "/src/modules"
+                dest = folder + "/src/"
                 #print(dest)
                 shutil.copy(src, dest)
                 src = "modules/" + modules[i+1]
@@ -88,21 +76,21 @@ def pickModules():
 def copyAllFiles():
     #shutil.copy("updateTimers.py"   , folder)
     #shutil.move("timers.tab"        , folder)
-    shutil.copy("updateIO.py"       , folder)
-    shutil.copy("io.tab"            , folder)
+    shutil.copy("src/updateIO.py"       , folder)
+    shutil.copy("src/io.tab"            , folder)
     #shutil.copy("serial.cpp"        , folder)
     #shutil.copy("serial.h"          , folder)
-    shutil.copy("tasks.json"        , folder +  "/.vscode/" )
-    shutil.copy("macros.h"          , folder +  "/src/basics/" )
-    shutil.copy("stateMachineClass.h"   , folder +  "/src/basics/" )
-    shutil.copy("stateMachineClass.cpp" , folder +  "/src/basics/" )
+    shutil.copy("src/tasks.json"        , folder +  "/.vscode/" )
+    shutil.copy("src/macros.h"          , folder +  "/src/" )
+    shutil.copy("src/stateMachineClass.h"   , folder +  "/src/" )
+    shutil.copy("src/stateMachineClass.cpp" , folder +  "/src/" )
 
 def assembleMain():
     folder2 = folder[2:]
     with open(folder + "/" + folder2 + ".ino", "w") as main:             #main.c
-        #main.write('#include "src/basics/timers.h"\n')
-        main.write('#include "src/basics/io.h"\n')
-        main.write('#include "roundRobinTasks.h"\n')
+        #main.write('#include "src/timers.h"\n')
+        main.write('#include "src/io.h"\n')
+        main.write('#include "roundRobinTasks.h"\n')            # needed?
         #main.write('#include " .h"\n') #fill in custom libraries
         #main.write('#include " .h"\n')    
         
@@ -128,28 +116,29 @@ def assembleRoundRobinTasks():
     with open(folder + "/roundRobinTasks.cpp", "w") as rr:
         rr.write("""
 #include "roundRobinTasks.h"
-#include "src/basics/io.h"
-#include "src/basics/macros.h"
+#include "src/io.h"
+#include "src/macros.h"
 
-extern void processRoundRobinTasks(void) {
-	static unsigned char taskCounter = 0;
+extern void processRoundRobinTasks(void) 
+{
+    static unsigned char taskCounter = 0;
 
 // HIGH PRIORITY ROUND ROBIN TASKS
 
 
 // LOW PRIORITY ROUND ROBIN TASKS
-	taskCounter ++;
-	switch(taskCounter) {
-		default: taskCounter = 0;
+    switch( ++ taskCounter)
+    {
+    default: taskCounter = 0;
 
-		case 0:
-		/* fill in a task */
-		break;
+    case 0:
+        /* fill in a task */
+        break;
 
-		case 1:
-		/* fill in a task */
-		break;
-	}
+    case 1:
+        /* fill in a task */
+        break;
+    }
 }""")
 
         rr.close()
@@ -170,8 +159,8 @@ def createFolders():
         print(folder)
         os.makedirs(folder)
         os.makedirs(folder + "/src")
-        os.makedirs(folder + "/src/modules")
-        os.makedirs(folder + "/src/basics")
+        #os.makedirs(folder + "/src/modules") #  OBSOLETE
+        #os.makedirs(folder + "/src/basics")
         os.makedirs(folder + "/stateDiagrams")
         os.makedirs(folder + "/.vscode")
         return folder
@@ -184,8 +173,7 @@ def assembleBuildScripts():
         script.write("#!/bin/bash\n")
         #script.write("python.exe updateTimers.py\n")
         script.write("python.exe updateIO.py\n")
-        script.write("arduino-cli compile -b arduino:avr:nano ~/Documents/software/")
-        script.write( projectName + "\n" )
+        script.write("arduino-cli compile -b arduino:avr:nano /c/Users/sknippels/Documents/" + projectName + " -e\n")
         script.write( "exit" )
         script.close()
 
@@ -194,7 +182,7 @@ def assembleBuildScripts():
         #script.write("python.exe updateTimers.py\n")
         script.write("python.exe updateIO.py\n")
         script.write('echo "COMPILING"\n')
-        script.write("arduino-cli compile -b arduino:avr:nano ~/Documents/software/")
+        script.write("./build.sh")
         script.write( projectName + "\n" )
         script.write( 'echo "UPLOADING"\n')
         script.write( 'arduino-cli upload -b arduino:avr:nano:cpu=atmega328old -p COM3 -i ~/Documents/software/' + projectName + '/' + projectName + '.arduino.avr.nano.hex\n')
@@ -203,28 +191,24 @@ def assembleBuildScripts():
         script.close()
 
     
-
-# def jsonTasks():
-#     return
-
 ### BEGIN SCRIPT ###
 projectName = getProjectName()
 
 folder = createFolders()
 
-stateMachines = getStateMachines("nested") #GENERATE ALL NESTED STATE MACHINES
+# stateMachines = getStateMachines("nested") #GENERATE ALL NESTED STATE MACHINES       # OBSOLETE 
+# for machine in stateMachines:
+#     os.system("python stateMachineGenerator.py " + machine + ".graphml" + " nested")
+
+stateMachines = getStateMachines()   #GENERATE ALL MAIN STATE MACHINES
+print(stateMachines)
 for machine in stateMachines:
-    os.system("python stateMachineGenerator.py " + machine + ".graphml" + " nested")
+    os.system("python ./stateMachineGenerator.py " + machine + ".graphml")
 
-stateMachines = getStateMachines("main")   #GENERATE ALL MAIN STATE MACHINES
-for machine in stateMachines:
-    os.system("python stateMachineGenerator.py " + machine + ".graphml" + " main")
+moveStateMachines("stateMachines", folder)
 
-moveStateMachines("nestedStateMachines", folder)
-
-moveStateMachines("mainStateMachines", folder)
-
-assembleTimersTab()
+# moveStateMachines("mainStateMachines", folder)    #OBSOLETE
+# assembleTimersTab()                               # OBSOLETE
 
 pickModules()
 
@@ -237,7 +221,7 @@ assembleRoundRobinTasks()
 assembleBuildScripts()
 
 os.chdir(folder)
-#os.system("python updateTimers.py")
+#os.system("python updateTimers.py")        # OBSOLETE
 os.system("python updateIO.py")
 
 input("press <ENTER> to close the program")
