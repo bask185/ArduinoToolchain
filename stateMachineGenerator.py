@@ -1,4 +1,4 @@
-#!/usr/bin/python 
+#!/usr/bin/bash 
 import sys
 import xml
 import os
@@ -127,7 +127,7 @@ with open(folder + new_file_name + ".cpp", "w") as c:
         c.write("}\n\n")
 
     c.write('\n// STATE MACHINE\n')
-    c.write("extern bool "+ new_file_name +"()\n")
+    c.write("extern uint8_t "+ new_file_name +"()\n")
     c.write("{\n")
     c.write("    STATE_MACHINE_BEGIN\n\n")
     i = -1
@@ -153,6 +153,6 @@ with open(folder + new_file_name + ".h", "w") as h:
         h.write(",\n    "+ state)
     h.write("\n} ;\n\n")
     
-    h.write("extern bool " + new_file_name + "(void) ; \n")
+    h.write("extern uint8_t " + new_file_name + "(void) ; \n")
     h.write("extern void " + new_file_name + "Init(void) ; \n")
     h.close()
