@@ -3,6 +3,7 @@
 import os
 import shutil, errno
 import platform
+import subprocess
 
 projectName = ""
 
@@ -155,9 +156,18 @@ extern void processRoundRobinTasks(void)
         rr.write("void processRoundRobinTasks() ;\n")
         rr.close()
 
-def  getProjectName():
+def getProjectName():
+
     projectName = input("Type name of new project\n")
     return projectName
+
+def getBoardType():
+    print("For what board will you be compiling?")
+    subprocess.call( "arduino-cli.exe board listall" )
+    #subprocess.call( ['sh', './listAllBoards.sh'])
+    boardName = input("Choose any board name behind arduino:avr:\n")
+    return "arduino:avr:" + boardName 
+    #boardType =  input("for what board will you be compiling\n")
 
 def createFolders():
 
@@ -181,7 +191,7 @@ def assembleBuildScripts():
         #script.write("python.exe updateTimers.py\n")
         script.write("python.exe updateIO.py\n")
         script.write("python.exe src/addDate.py\n")
-        script.write("arduino-cli compile -b arduino:avr:nano /c/Users/sknippels/Documents/" + projectName + " -e\n")
+        script.write("arduino-cli compile -b" + FQBN + "/c/Users/sknippels/Documents/" + projectName + " -e\n") #FIXME THIS PATH NEED FIXING
         script.write( "exit" )
         script.close()
 
@@ -193,7 +203,7 @@ def assembleBuildScripts():
         script.write("./build.sh")
         script.write( projectName + "\n" )
         script.write( 'echo "UPLOADING"\n')
-        script.write( 'arduino-cli upload -b arduino:avr:nano:cpu=atmega328old -p COM3 -i ~/Documents/software/' + projectName + '/' + projectName + '.arduino.avr.nano.hex\n')
+        script.write( 'arduino-cli upload -b ' + FQBN + ' -p COM3 -i ~/Documents/software/' + projectName + '/' + projectName + '.' + FQBN + '\n') #FIXME THIS PATH NEED FIXING
         #script.write( 'rm *.hex *.elf\n') # NOT_NEEDED 
         script.write( "exit" )
         script.close()
@@ -202,6 +212,9 @@ def assembleBuildScripts():
 ### BEGIN SCRIPT ###
 projectName = getProjectName()
 
+FQBN = getBoardType()
+print (FQBN + " selected\n" )
+
 folder = createFolders()
 
 # stateMachines = getStateMachines("nested") #GENERATE ALL NESTED STATE MACHINES       # OBSOLETE 
@@ -209,7 +222,7 @@ folder = createFolders()
 #     os.system("python stateMachineGenerator.py " + machine + ".graphml" + " nested")
 
 stateMachines = getStateMachines()   #GENERATE ALL MAIN STATE MACHINES
-print(stateMachines)
+# print(stateMachines)
 for machine in stateMachines:
     os.system("python ./stateMachineGenerator.py " + machine + ".graphml")
 
@@ -230,7 +243,7 @@ assembleBuildScripts()
 
 os.chdir(folder)                            # change to newly assembled folder, and first run the IO script
 #os.system("python updateTimers.py")        # OBSOLETE
-os.system("python updateIO.py")
+os.system("python updateIO.py")             # may be deleted? This step is done before compilation anyways
 
 input("press <ENTER> to close the program")
 
