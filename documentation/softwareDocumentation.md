@@ -1,14 +1,14 @@
 # Software documentation
-All software is ever to be properly documentated. Especially the modules which have often dependencies to one another. The C/C++ header file system is IMO not the most prittiest solution I've seen. If you have many dependencies all the #include's can become messy. Therefor we need order in the form of documentation.
+All half complex software should ever be properly documentated. Especially when the modules which have often dependencies to one another. The C/C++ header file system is IMO not the most prittiest solution I've seen. If you have many dependencies all the #include's can become messy. Therefor we need order in the form of documentation.
 
-For modules you want a:
+For modules/libaries you want a:
 - general description
 - list of dependencies 
 - list of extern functions
 - list of extern variables
-- a usage guide. 
+- optinonally, a usage guide. 
 
-This is an stripped example of a C work project:
+This is an stripped example of a header file of a C project from my work:
 ```c
 /* Light handler
 
@@ -42,15 +42,35 @@ extern bit testMode;
 - It uses the airPressureSensor to control the red light
 - The automatic routine of the machine should set, "automaticEnabled" to turn on the green light
 - And by setting 'blink' the orange light will blink.
-- The flag testMode is used to burn the yellow light when the machine is in test testMode
+- The flag testMode is used to burn the yellow light when the machine is in test test mode
 */
 ```
-To use extern or 'global' variables is often not needed and not recommended. They are slightly more susceptable for bugs. But regardless they can be handy. But this discussion does not belong to the scope of this project.
 
 If your module is written as a class, the formatting is already partially done for you. As the keywords `public` and `private` do some of formatting for you. The general description as well as a usage explanation and dependencies remain the most important information. Do not forget to add these in the header files. 
 
-Complicated functions for complicated calculations and complicated tasks can always use extra comments in the source files. Though modules are often designed to just to be used rather than to be read, they may need altering on a bad day. If you have written some complex code at your best moment of clarity you will find yourself falling short when you do not remember how your code works and you need to look for a bug. 
-
-I have written code to analize the spoke patterns of spoke bicycle wheels. It has become an extremely complex thing and it still needs more features. Thankfully almost every line has comment. Additionally I have written a local wiki page explaining the math behind the code. If others need to make alterations to this, than they can because I documentated it!
+Complicated functions for complicated calculations and complicated tasks could always use some extra comments in the source files. Some modules or libaries are not always well documentated, they may need altering on a bad day. If you have written some serious complex code at your best moment of clarity you will find yourself falling short when you do not remember how your code works and you need to look for a bug five years later. 
 
 It is always a general good idea to build your code as it were intended for others. So add comments where needed and keep the code nice and tidy.
+
+As mentioned in ```stateMachine.md``` you should always make yourself some kind of a sphere diagram or flowchart when building state machines. This is as important for yourself when you have to make alterations to your programs as it is for coworkers The sphere diagrams are also a very good tool to communicate to other coworks, even if they aren't programmers. It really helps to understand one another.
+
+To provide more details to the functions or methods, so should use the doxygen method. This is a certain style for comments which has become a standard. It also comes with a feature. For examples you can look in ```stateMachineClass.cpp```.
+
+One such example looks is this one
+```c
+/**
+ * @brief function to handle the one time condition for the entry states
+ *
+ * @param N/A
+ *
+ * @return true or false
+ */
+uint8_t StateMachine::entryState()
+{
+    uint8_t retVal = runOnce ;
+    runOnce = 0 ;
+    return retVal ;
+}
+```
+The format is important. Many modern text editors come with a certain previewer. If you call a certain function which is documented like this, you will see the description with highlighted words when you hover your mouse over the function.
+

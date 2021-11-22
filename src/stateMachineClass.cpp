@@ -21,10 +21,11 @@ void StateMachine::setState( uint8_t _state )
 {
     state = _state ;
     runOnce = true ;
+    exitFlag = false ;
 }
 
 /**
- * @brief Lets the entry state to run again. May be usefull from time to time
+ * @brief Lets the entry state to run again. Can be usefull from time to time
  *
  * @param N/A
  *
@@ -82,7 +83,7 @@ uint8_t StateMachine::onState()
  */
 uint8_t StateMachine::exitState()
 {
-    return exitFlag ; ;
+    return exitFlag 
 }
 
 /**
@@ -175,4 +176,22 @@ uint8_t StateMachine::run()
         }
     }
     return enabled ;
+}
+
+/**
+ * @brief Called from within an if-statement, this method can be used for
+ * repeating parts of code with a certain interval
+ *
+ * @param N/A
+ *
+ * @return enabled flag
+ */
+uint8_t StateMachine::repeat( uint32_t _interval )
+{
+    if( millis() - prevTime >= _interval )
+    {
+        prevTime = millis() ;
+        return true ;
+    }
+    return false ;
 }

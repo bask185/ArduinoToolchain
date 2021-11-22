@@ -26,6 +26,7 @@ public:
     void    exit() ;
     void    reboot() ;
     uint8_t endState() ;
+    uint8_t repeat( uint32_t ) ;
     #ifdef DEBUG
     uint8_t  runOnce ;  // if debug is active, this must be public in order to print the state names
     #endif
