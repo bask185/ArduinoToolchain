@@ -74,7 +74,7 @@ def pickModules():
     #clear()
 
 def copyAllFiles():
-    #shutil.copy("updateTimers.py"   , folder)
+    #shutil.copy("updateTimers.py"   , folder)      // OBSOLETE DUE TO FAVOR OF MILLIS() AND MACROS
     #shutil.move("timers.tab"        , folder)
     shutil.copy("src/updateIO.py"       , folder)
     shutil.copy("src/io.tab"            , folder)
@@ -186,7 +186,7 @@ def assembleBuildScripts():
         script.write( projectName + "\n" )
         script.write( 'echo "UPLOADING"\n')
         script.write( 'arduino-cli upload -b arduino:avr:nano:cpu=atmega328old -p COM3 -i ~/Documents/software/' + projectName + '/' + projectName + '.arduino.avr.nano.hex\n')
-        script.write( 'rm *.hex *.elf\n')
+        #script.write( 'rm *.hex *.elf\n') # NOT_NEEDED 
         script.write( "exit" )
         script.close()
 
@@ -220,7 +220,7 @@ assembleRoundRobinTasks()
 
 assembleBuildScripts()
 
-os.chdir(folder)
+os.chdir(folder)                            # change to newly assembled folder, and first run the IO script
 #os.system("python updateTimers.py")        # OBSOLETE
 os.system("python updateIO.py")
 

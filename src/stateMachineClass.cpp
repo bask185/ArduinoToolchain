@@ -1,16 +1,11 @@
 #include "stateMachineClass.h"
 
-#define beginState stateX
-#ifndef beginState
-#error BEGIN STATE IS NOT DEFINED, DEFINE THE FIRST STATE TO BE RUN
-#endif
-
 /**
  * @brief creates an instance of the state machine class. Used to handle the flow
  */
 StateMachine::StateMachine() 
 {
-    state = beginState ;
+    state = 0 ;
     runOnce = true ;
     exitFlag = false ;
 }
