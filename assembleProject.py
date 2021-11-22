@@ -88,28 +88,31 @@ def copyAllFiles():
     shutil.copy("src/macros.h"          , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.h"   , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.cpp" , folder +  "/src/" )
+    shutil.copy("src/addDate.py" , folder +  "/src/" )
 
 def assembleMain():
     folder2 = folder[2:]
     with open(folder + "/" + folder2 + ".ino", "w") as main:             #main.c
         #main.write('#include "src/timers.h"\n')
         main.write('#include "src/io.h"\n')
+        main.write('#include "src/date.h"\n')
         main.write('#include "roundRobinTasks.h"\n')            # needed?
         #main.write('#include " .h"\n') #fill in custom libraries
         #main.write('#include " .h"\n')    
         
         for machine in stateMachines:
-            main.write('#include "' + machine + '.h"\n')
+            main.write('#include "' + machine + '.h"\n\n')
             
-        main.write("\nvoid setup()\n{\n")
-        main.write("\tinitIO();\n")
-        main.write("\tSerial.begin(115200);\n")
+        main.write("void setup()\n{\n")
+        main.write("    initIO() ;\n")
+        main.write("    Serial.begin(115200) ;\n")
+        main.write("    printDate() ;\n")
         for machine in stateMachines:
-            main.write("\t" + machine + "Init();\n")
+            main.write("    " + machine + "Init() ;\n")
         main.write("}\n\n")
 
         main.write("void loop()\n{\n")
-        main.write("\tprocessRoundRobinTasks();\n\n")
+        main.write("    processRoundRobinTasks() ;\n\n")
         
         for machine in stateMachines:
             main.write("\t" + machine + "();\n")
@@ -149,7 +152,7 @@ extern void processRoundRobinTasks(void)
 
 
     with open(folder + "/roundRobinTasks.h", "w") as rr:
-        rr.write("void processRoundRobinTasks();\n")
+        rr.write("void processRoundRobinTasks() ;\n")
         rr.close()
 
 def  getProjectName():
@@ -177,6 +180,7 @@ def assembleBuildScripts():
         script.write("#!/bin/bash\n")
         #script.write("python.exe updateTimers.py\n")
         script.write("python.exe updateIO.py\n")
+        script.write("python.exe src/addDate.py\n")
         script.write("arduino-cli compile -b arduino:avr:nano /c/Users/sknippels/Documents/" + projectName + " -e\n")
         script.write( "exit" )
         script.close()

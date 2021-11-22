@@ -12,12 +12,14 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "./build.sh"
+            "command": "./build.sh",
+            "problemMatcher": []
         },
         {
             "label": "upload",
             "type": "shell",
-            "command": "./upload.sh"
+            "command": "./upload.sh",
+            "problemMatcher": []
         }
     ]
 }

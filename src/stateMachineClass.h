@@ -21,7 +21,6 @@ public:
     uint8_t onState() ;
     uint8_t exitState() ;
     uint8_t run() ;
-    
     void    setTimeout( uint32_t ) ;
     uint8_t timeout() ;
     void    exit() ;
