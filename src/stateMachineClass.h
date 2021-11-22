@@ -2,7 +2,7 @@
 #include "macros.h"
 
 #define StateFunction( x ) bool x##F()
-#ifndef DEBGUG
+#ifndef DEBUG
 #define State(x) break; case x: if(x##F())
 #else   
 #define State(x) break; case x: if(sm.runOnce) Serial.println(#x); if(x##F())   // if debug is defined, all states are stringerized and printed when entry state is run
@@ -27,9 +27,14 @@ public:
     void    exit() ;
     void    reboot() ;
     uint8_t endState() ;
+    #ifdef DEBUG
+    uint8_t  runOnce ;  // if debug is active, this must be public in order to print the state names
+    #endif
     
 private:
-    uint8_t  runOnce ;
+    #ifndef DEBUG
+    uint8_t  runOnce ;  // is usually private
+    #endif
     uint8_t  enabled ;
     uint8_t  exitFlag ;
     uint32_t prevTime ;
