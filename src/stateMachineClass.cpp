@@ -24,7 +24,7 @@ void StateMachine::setState( uint8_t _state )
 }
 
 /**
- * @brief Lets the entry state to run again. Usefull for letting a certain state to run several times
+ * @brief Lets the entry state to run again. May be usefull from time to time
  *
  * @param N/A
  *
@@ -169,7 +169,8 @@ uint8_t StateMachine::run()
 {
     if( enabled == 0 )
     {
-        if( millis() - prevTime >= interval ) {
+        if( millis() - prevTime >= interval )
+        {
             enabled = 1 ;
         }
     }

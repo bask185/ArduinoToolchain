@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import os
 import shutil, errno
@@ -21,7 +21,8 @@ def getStateMachines() : # function tested!
             
     string = []
     for file in Files:
-        string.append(file[:-8])
+        if file != ".gitkeep":         # ignore this empty file
+            string.append(file[:-8])    # adds files to list, removes the .graphml extension 
     return string
 
 
@@ -35,10 +36,13 @@ def moveStateMachines(_src, _dest):
             os.makedirs(dst_dir)
         for file_ in files:
             src_file = os.path.join(src_dir, file_)
+            #print(src_file)
             dst_file = os.path.join(dst_dir, file_)
             if os.path.exists(dst_file):
                 os.remove(dst_file)
-            if "graphml" in src_file:
+            if ".gitkeep" in src_file:
+                pass
+            elif "graphml" in src_file:
                 #shutil.copy(src_file, "yEd_stateMachines_repo")        // no longer copy stuff here, not really needed for this repository
                 shutil.move(src_file, dst_dir + "/stateDiagrams") # make me m ove instead of copy
             else:
