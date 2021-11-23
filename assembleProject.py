@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import time
 import os
 import shutil, errno
 import platform
@@ -55,19 +56,24 @@ def pickModules():
     #clear = lambda: os.system('cls') #on Windows System
     #clear()
 
-    modules = os.listdir("./modules/")
-    print("Select the modules you want to import\ntype 'done' when you are ready")
-    for i, module in enumerate(modules):
-        if i % 2 == 0:
-            print("{:2d}        {}".format(int(i/2), module[:-4]))
+    # modules = os.listdir("./modules/")
+    # print("\n\nSelect the modules you want to import\ntype 'done' when you are ready")
+    # for i, module in enumerate(modules):
+    #     if i % 2 == 0:
+    #         print("{:2d}        {}".format(int(i/2), module[:-4]))
 
     retValue = ""
     while retValue != 'done':
+        modules = os.listdir("./modules/")
+        print("\n\nSelect the modules you want to import\ntype 'done' when you are ready")
+        for i, module in enumerate(modules):
+            if i % 2 == 0:
+                print("{:2d}        {}".format(int(i/2), module[:-4]))
         retValue = input()
         if retValue != 'done':
             try:
                 i = int(retValue) * 2
-                print(modules[i] + " picked")
+                print("\n\n" + modules[i] + " picked")
                 src = "modules/" + modules[i]
                 #print(src)
                 dest = folder + "/src/"
@@ -75,6 +81,7 @@ def pickModules():
                 shutil.copy(src, dest)
                 src = "modules/" + modules[i+1]
                 shutil.copy(src, dest)
+                time.sleep(2)
             except:
                 print("you entered a wrong value, dipshit. try again!")
     #clear()
@@ -166,9 +173,10 @@ def getProjectName():
     return projectName
 
 def getBoardType():
-    print("For what board will you be compiling?")
+    
     subprocess.call( "arduino-cli.exe board listall" )
     #subprocess.call( ['sh', './listAllBoards.sh'])
+    print("For what board will you be compiling?")
     boardName = input("Choose any board name behind arduino:avr:\n")
     return "arduino:avr:" + boardName 
     #boardType =  input("for what board will you be compiling\n")
@@ -233,6 +241,7 @@ projectName = getProjectName()
 
 FQBN = getBoardType()
 print (FQBN + " selected\n" )
+time.sleep( 2 )
 
 folder = createFolders()
 
