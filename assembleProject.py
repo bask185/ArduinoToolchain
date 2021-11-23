@@ -148,13 +148,16 @@ extern void processRoundRobinTasks(void)
 // LOW PRIORITY ROUND ROBIN TASKS
     switch( ++ taskCounter)
     {
-    default: taskCounter = 0;
-
-    case 0:
+    default: 
+        taskCounter = 0;
         /* fill in a task */
         break;
 
     case 1:
+        /* fill in a task */
+        break;
+
+    case 2:
         /* fill in a task */
         break;
     }
