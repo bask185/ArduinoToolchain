@@ -4,6 +4,7 @@ import os
 import shutil, errno
 import platform
 import subprocess
+import serial.tools.list_ports
 
 projectName = ""
 
@@ -90,6 +91,7 @@ def copyAllFiles():
     shutil.copy("src/stateMachineClass.h"   , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.cpp" , folder +  "/src/" )
     shutil.copy("src/addDate.py" , folder +  "/src/" )
+    shutil.copy("src/gitInit.sh", folder )
 
 def assembleMain():
     folder2 = folder[2:]
@@ -97,6 +99,7 @@ def assembleMain():
         #main.write('#include "src/timers.h"\n')
         main.write('#include "src/io.h"\n')
         main.write('#include "src/date.h"\n')
+        main.write('#include "src/macros.h"\n')
         main.write('#include "roundRobinTasks.h"\n')            # needed?
         #main.write('#include " .h"\n') #fill in custom libraries
         #main.write('#include " .h"\n')    
@@ -104,7 +107,8 @@ def assembleMain():
         for machine in stateMachines:
             main.write('#include "' + machine + '.h"\n\n')
             
-        main.write("void setup()\n{\n")
+        main.write("void setup()\n")
+        main.write("{\n")
         main.write("    initIO() ;\n")
         main.write("    Serial.begin(115200) ;\n")
         main.write("    printDate() ;\n")
@@ -191,19 +195,34 @@ def assembleBuildScripts():
         #script.write("python.exe updateTimers.py\n")
         script.write("python.exe updateIO.py\n")
         script.write("python.exe src/addDate.py\n")
-        script.write("arduino-cli compile -b" + FQBN + "/c/Users/sknippels/Documents/" + projectName + " -e\n") #FIXME THIS PATH NEED FIXING
+        script.write("arduino-cli compile -b " + FQBN + " /c/Users/sknippels/Documents/" + projectName + " -e\n") #FIXME THIS PATH NEED FIXING WITH CURRENT FOLDER
         script.write( "exit" )
         script.close()
+
+    ports = serial.tools.list_ports.comports()
+
+    for port, desc, hwid in sorted(ports):
+        lastPort = port
 
     with open(folder + "/upload.sh", "w") as script:
         script.write("#!/bin/bash\n")
         #script.write("python.exe updateTimers.py\n")
         script.write("python.exe updateIO.py\n")
         script.write('echo "COMPILING"\n')
-        script.write("./build.sh")
-        script.write( projectName + "\n" )
+        script.write("./build.sh\n")
+
         script.write( 'echo "UPLOADING"\n')
-        script.write( 'arduino-cli upload -b ' + FQBN + ' -p COM3 -i ~/Documents/software/' + projectName + '/' + projectName + '.' + FQBN + '\n') #FIXME THIS PATH NEED FIXING
+        script.write( 'arduino-cli upload -b ' + FQBN + ' -p ' + lastPort + ' -i /c/Users/sknippels/Documents/' + projectName + '/build/')
+        for letter in FQBN:
+            if( letter == ':'):
+                script.write('.')
+            else:
+                script.write( letter )
+        script.write('/' + projectName + '.ino.hex\n') #FIXME THIS PATH NEED FIXING
+        #              arduino-cli upload -b arduino:avr:uno -p COM4 -i /c/Users/sknippels/Documents/doner/build/arduino.avr.uno/doner.ino.hex
+        #              arduino-cli upload -b arduino:avr:uno -p COM3 -i ~/Documents/software/doner/doner.arduino:avr:uno
+        #                                                  C:\Users\sknippels\Documents\doner\build\arduino.avr.uno\doner.ino.hex
+
         #script.write( 'rm *.hex *.elf\n') # NOT_NEEDED 
         script.write( "exit" )
         script.close()
@@ -244,6 +263,14 @@ assembleBuildScripts()
 os.chdir(folder)                            # change to newly assembled folder, and first run the IO script
 #os.system("python updateTimers.py")        # OBSOLETE
 os.system("python updateIO.py")             # may be deleted? This step is done before compilation anyways
+
+#answer = input("Do you wish to intialize your Git repository [y/N]?\n")
+#if( answer == 'y' or answer == 'Y' ):
+#    print("Yes selected\n")
+#    os.system("gitInit.sh")
+#else:
+#    print("No selected\n")
+
 
 input("press <ENTER> to close the program")
 

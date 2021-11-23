@@ -83,7 +83,7 @@ uint8_t StateMachine::onState()
  */
 uint8_t StateMachine::exitState()
 {
-    return exitFlag 
+    return exitFlag ;
 }
 
 /**
