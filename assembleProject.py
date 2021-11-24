@@ -167,6 +167,7 @@ extern void processRoundRobinTasks(void)
 
 
     with open(folder + "/roundRobinTasks.h", "w") as rr:
+        rr.write("#include <Arduino.h>\n\n")
         rr.write("void processRoundRobinTasks() ;\n")
         rr.close()
 

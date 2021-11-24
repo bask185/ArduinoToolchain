@@ -20,6 +20,12 @@
             "type": "shell",
             "command": "./upload.sh",
             "problemMatcher": []
+        },
+        {
+            "label": "release",
+            "type": "shell",
+            "command": "python release.py",
+            "problemMatcher": []
         }
     ]
 }
