@@ -24,7 +24,7 @@
         {
             "label": "release",
             "type": "shell",
-            "command": "python release.py",
+            "command": "python ./src/release.py",
             "problemMatcher": []
         }
     ]

@@ -83,7 +83,7 @@ def pickModules():
                 shutil.copy(src, dest)
                 time.sleep(2)
             except:
-                print("you entered a wrong value, dipshit. try again!")
+                print("invalid value. try again")
     #clear()
 
 def copyAllFiles():
@@ -97,8 +97,9 @@ def copyAllFiles():
     shutil.copy("src/macros.h"          , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.h"   , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.cpp" , folder +  "/src/" )
-    shutil.copy("src/addDate.py" , folder +  "/src/" )
+    shutil.copy("src/addDate.py", folder +  "/src/" )
     shutil.copy("src/gitInit.sh", folder )
+    shutil.copy("src/release.py", folder +  "/src/" )
 
 def assembleMain():
     folder2 = folder[2:]
@@ -106,6 +107,7 @@ def assembleMain():
         #main.write('#include "src/timers.h"\n')
         main.write('#include "src/io.h"\n')
         main.write('#include "src/date.h"\n')
+        main.write('#include "src/version.h"\n')
         main.write('#include "src/macros.h"\n')
         main.write('#include "roundRobinTasks.h"\n')            # needed?
         #main.write('#include " .h"\n') #fill in custom libraries
@@ -117,8 +119,9 @@ def assembleMain():
         main.write("void setup()\n")
         main.write("{\n")
         main.write("    initIO() ;\n")
-        main.write("    Serial.begin(115200) ;\n")
-        main.write("    printDate() ;\n")
+        main.write("    Serial.begin( 115200 ) ;\n")
+        main.write("    Serial.println( version ) ;\n")
+        main.write("    Serial.println( date ) ;\n")
         for machine in stateMachines:
             main.write("    " + machine + "Init() ;\n")
         main.write("}\n\n")

@@ -14,8 +14,8 @@ time.sleep( 0.5 )
 print("Enter a description for the changelog, send 'DONE' when ready")
 
 dateTimeObj = datetime.now()
-with open("../changelog.txt", "a") as changelog: 
-    changelog.write(str(dateTimeObj) + "   " + versionNumber + "\n" )
+with open("changelog.txt", "a") as changelog: 
+    changelog.write( versionNumber + "   Date/time:" + str(dateTimeObj) + "\n" )
     
     newLine = ""
     while( newLine != 'DONE'):
@@ -27,6 +27,9 @@ with open("../changelog.txt", "a") as changelog:
     changelog.close()
 
 os.system("git tag " + versionNumber )
+
+with open("src/version.h", "w") as file:
+    file.write( "const char * version = \"" + versionNumber + "\" ;")
 
 
 
