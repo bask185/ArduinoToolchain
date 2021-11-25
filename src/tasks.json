@@ -6,25 +6,31 @@
         {
             "label": "update io",
             "type": "shell",
-            "command": "python updateIO.py",
+            "command": "python ./src/updateIO.py",
             "problemMatcher": []
         },
         {
             "label": "build",
             "type": "shell",
-            "command": "./build.sh",
+            "command": "./src/build.sh",
             "problemMatcher": []
         },
         {
             "label": "upload",
             "type": "shell",
-            "command": "./upload.sh",
+            "command": "./src/upload.sh",
             "problemMatcher": []
         },
         {
-            "label": "release",
+            "label": "release new version",
             "type": "shell",
             "command": "python ./src/release.py",
+            "problemMatcher": []
+        },
+        {
+            "label": "initialize git repository",
+            "type": "shell",
+            "command": "./src/gitInit.sh",
             "problemMatcher": []
         }
     ]

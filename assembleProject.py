@@ -6,6 +6,7 @@ import shutil, errno
 import platform
 import subprocess
 import serial.tools.list_ports
+from datetime import datetime
 
 projectName = ""
 
@@ -81,25 +82,26 @@ def pickModules():
                 shutil.copy(src, dest)
                 src = "modules/" + modules[i+1]
                 shutil.copy(src, dest)
-                time.sleep(2)
+                time.sleep(1)
             except:
-                print("invalid value. try again")
+                print("invalid value!")
     #clear()
 
 def copyAllFiles():
-    #shutil.copy("updateTimers.py"   , folder)      // OBSOLETE DUE TO FAVOR OF MILLIS() AND MACROS
+    #shutil.copy("updateTimers.py"   , folder)      // OBSOLETE DUE TO FAVOR OF DIFFERENT TIMING METHOD
     #shutil.move("timers.tab"        , folder)
-    shutil.copy("src/updateIO.py"       , folder)
-    shutil.copy("src/io.tab"            , folder)
-    #shutil.copy("serial.cpp"        , folder)
+    shutil.copy("src/updateIO.py"           , folder +  "/src/" )
+    shutil.copy("src/io.tab"                , folder)
+    #shutil.copy("serial.cpp"        , folder)      // OBSOLETE, will be moved to the module folder
     #shutil.copy("serial.h"          , folder)
-    shutil.copy("src/tasks.json"        , folder +  "/.vscode/" )
-    shutil.copy("src/macros.h"          , folder +  "/src/" )
+    shutil.copy("src/tasks.json"            , folder +  "/.vscode/" )
+    shutil.copy("src/macros.h"              , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.h"   , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.cpp" , folder +  "/src/" )
-    shutil.copy("src/addDate.py", folder +  "/src/" )
-    shutil.copy("src/gitInit.sh", folder )
-    shutil.copy("src/release.py", folder +  "/src/" )
+    shutil.copy("src/addDate.py"            , folder +  "/src/" )
+    shutil.copy("src/gitInit.sh"            , folder +  "/src/" )
+    shutil.copy("src/release.py"            , folder +  "/src/" )
+    shutil.copy("src/version.h"             , folder +  "/src/" )
 
 def assembleMain():
     folder2 = folder[2:]
@@ -205,10 +207,10 @@ def createFolders():
         pass
 
 def assembleBuildScripts():
-    with open(folder + "/build.sh", "w") as script:
+    with open(folder + "/src/build.sh", "w") as script:
         script.write("#!/bin/bash\n")
         #script.write("python.exe updateTimers.py\n")
-        script.write("python.exe updateIO.py\n")
+        script.write("python.exe src/updateIO.py\n")
         script.write("python.exe src/addDate.py\n")
         script.write("arduino-cli compile -b " + FQBN + " /c/Users/sknippels/Documents/" + projectName + " -e\n") #FIXME THIS PATH NEED FIXING WITH CURRENT FOLDER
         script.write( "exit" )
@@ -219,12 +221,12 @@ def assembleBuildScripts():
     for port, desc, hwid in sorted(ports):
         lastPort = port
 
-    with open(folder + "/upload.sh", "w") as script:
+    with open(folder + "/src/upload.sh", "w") as script:
         script.write("#!/bin/bash\n")
         #script.write("python.exe updateTimers.py\n")
-        script.write("python.exe updateIO.py\n")
+        #script.write("python.exe updateIO.py\n")       // OBSOLETE done in build.sh
         script.write('echo "COMPILING"\n')
-        script.write("./build.sh\n")
+        script.write("./src/build.sh\n")
 
         script.write( 'echo "UPLOADING"\n')
         script.write( 'arduino-cli upload -b ' + FQBN + ' -p ' + lastPort + ' -i /c/Users/sknippels/Documents/' + projectName + '/build/')
@@ -242,19 +244,20 @@ def assembleBuildScripts():
         script.write( "exit" )
         script.close()
 
+    dateTimeObj = datetime.now()
+    with open(folder + "/changelog.txt", "w") as log:   # makes changelog
+        log.write(projectName + "\nv0.0.0   Date/time:" + str(dateTimeObj) + "\nProject assembled\n\n" )
+        log.close()
+
     
 ### BEGIN SCRIPT ###
 projectName = getProjectName()
 
 FQBN = getBoardType()
 print (FQBN + " selected\n" )
-time.sleep( 2 )
+time.sleep( 1 )
 
 folder = createFolders()
-
-# stateMachines = getStateMachines("nested") #GENERATE ALL NESTED STATE MACHINES       # OBSOLETE 
-# for machine in stateMachines:
-#     os.system("python stateMachineGenerator.py " + machine + ".graphml" + " nested")
 
 stateMachines = getStateMachines()   #GENERATE ALL MAIN STATE MACHINES
 # print(stateMachines)
@@ -262,9 +265,6 @@ for machine in stateMachines:
     os.system("python ./stateMachineGenerator.py " + machine + ".graphml")
 
 moveStateMachines("stateMachines", folder)
-
-# moveStateMachines("mainStateMachines", folder)    #OBSOLETE
-# assembleTimersTab()                               # OBSOLETE
 
 pickModules()
 
@@ -275,18 +275,6 @@ assembleMain()
 assembleRoundRobinTasks()
 
 assembleBuildScripts()
-
-os.chdir(folder)                            # change to newly assembled folder, and first run the IO script
-#os.system("python updateTimers.py")        # OBSOLETE
-os.system("python updateIO.py")             # may be deleted? This step is done before compilation anyways
-
-#answer = input("Do you wish to intialize your Git repository [y/N]?\n")
-#if( answer == 'y' or answer == 'Y' ):
-#    print("Yes selected\n")
-#    os.system("gitInit.sh")
-#else:
-#    print("No selected\n")
-
 
 input("press <ENTER> to close the program")
 
