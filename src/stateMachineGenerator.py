@@ -1,6 +1,6 @@
-#!/usr/bin/bash 
+#!/usr/bin/env python
 import sys
-import xml
+# import xml
 import os
 import platform 
 
@@ -47,7 +47,8 @@ file_name1 = "stateMachines/" + file_name
 #if smType == "nested":
 #    file_name = "nestedStateMachines/" + file_name
 
-with open(file_name1, "r") as f:
+print(file_name1)
+with open(file_name, "r") as f:
     data = f.readlines()
 
 for line in data: #states
@@ -80,7 +81,7 @@ new_file_name1 = "stateMachines/" + new_file_name
 #folder = "stateMachines/"
 
 #        folder + 
-with open(new_file_name1 + ".cpp", "w") as c:
+with open(new_file_name + ".cpp", "w") as c:
     c.write("// HEADER FILES\n")
     c.write('#include <Arduino.h>\n')
     c.write('#include "' + new_file_name + '.h"\n')
@@ -144,7 +145,7 @@ with open(new_file_name1 + ".cpp", "w") as c:
     c.write("}\n")
 
 
-with open(new_file_name1 + ".h", "w") as h:
+with open(new_file_name + ".h", "w") as h:
     h.write("enum " + new_file_name + "States\n{")
     h.write("\n    " + new_file_name + "IDLE")
     for state in states:
