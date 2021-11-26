@@ -26,7 +26,8 @@ def getStateMachines() : # function tested!
     string = []
     for file in Files:
         if file != ".gitkeep":         # ignore this empty file
-            string.append(file[:-8])    # adds files to list, removes the .graphml extension 
+            #string.append(file[:-8])    # adds files to list, removes the .graphml extension 
+            string.append(file)    # adds files to list, removes the .graphml extension 
     return string
 
 
@@ -257,9 +258,9 @@ time.sleep( 1 )
 folder = createFolders()
 
 stateMachines = getStateMachines()   #GENERATE ALL MAIN STATE MACHINES
-# print(stateMachines)
+print(stateMachines)
 for machine in stateMachines:
-    os.system("python ./src/stateMachineGenerator.py " + machine + ".graphml")
+    os.system("python ./src/stateMachineGenerator.py " + "stateMachines/"+ machine )
 
 moveStateMachines("stateMachines", folder)
 
