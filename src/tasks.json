@@ -12,13 +12,13 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "./src/build.sh",
+            "command": "python ./src/build.py",
             "problemMatcher": []
         },
         {
             "label": "upload",
             "type": "shell",
-            "command": "./src/upload.sh",
+            "command": "python ./src/upload.py",
             "problemMatcher": []
         },
         {

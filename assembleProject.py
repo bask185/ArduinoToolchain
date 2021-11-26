@@ -207,12 +207,13 @@ def createFolders():
         pass
 
 def assembleBuildScripts():
-    with open(folder + "/src/build.sh", "w") as script:
-        script.write("#!/bin/bash\n")
-        #script.write("python.exe updateTimers.py\n")
-        script.write("python.exe src/updateIO.py\n")
-        script.write("python.exe src/addDate.py\n")
-        script.write("arduino-cli compile -b " + FQBN + " /c/Users/sknippels/Documents/" + projectName + " -e\n") #FIXME THIS PATH NEED FIXING WITH CURRENT FOLDER
+    with open(folder + "/src/build.py", "w") as script:
+        script.write("#!/usr/bin/env python\n")
+        script.write('import os\n')
+        script.write('os.system("python src/updateIO.py")\n')
+        script.write('os.system("python src/addDate.py")\n')
+        script.write("print('BUILDING')\n")
+        script.write("os.system('arduino-cli compile -b " + FQBN + " c:/Users/sknippels/Documents/" + projectName + " -e')\n") #FIXME THIS PATH NEED FIXING WITH CURRENT FOLDER
         script.write( "exit" )
         script.close()
 
@@ -221,24 +222,20 @@ def assembleBuildScripts():
     for port, desc, hwid in sorted(ports):
         lastPort = port
 
-    with open(folder + "/src/upload.sh", "w") as script:
-        script.write("#!/bin/bash\n")
-        #script.write("python.exe updateTimers.py\n")
-        #script.write("python.exe updateIO.py\n")       // OBSOLETE done in build.sh
-        script.write('echo "COMPILING"\n')
-        script.write("./src/build.sh\n")
+    with open(folder + "/src/upload.PY", "w") as script:
+        script.write("#!/usr/bin/env python\n")
+        script.write('import os\n')
+        script.write('os.system("python src/build.py")\n')
 
-        script.write( 'echo "UPLOADING"\n')
-        script.write( 'arduino-cli upload -b ' + FQBN + ' -p ' + lastPort + ' -i /c/Users/sknippels/Documents/' + projectName + '/build/')
+        script.write( 'print("UPLOADING")\n')
+        script.write('os.system("arduino-cli upload -b ' + FQBN + ' -p ' + lastPort + ' -i c:/Users/sknippels/Documents/' + projectName + '/build/')
         for letter in FQBN:
             if( letter == ':'):
                 script.write('.')
             else:
                 script.write( letter )
-        script.write('/' + projectName + '.ino.hex\n') #FIXME THIS PATH NEED FIXING
-        #              arduino-cli upload -b arduino:avr:uno -p COM4 -i /c/Users/sknippels/Documents/doner/build/arduino.avr.uno/doner.ino.hex
-        #              arduino-cli upload -b arduino:avr:uno -p COM3 -i ~/Documents/software/doner/doner.arduino:avr:uno
-        #                                                  C:\Users\sknippels\Documents\doner\build\arduino.avr.uno\doner.ino.hex
+        script.write('/' + projectName + '.ino.hex")\n') #FIXME THIS PATH NEED FIXING
+  
 
         #script.write( 'rm *.hex *.elf\n') # NOT_NEEDED 
         script.write( "exit" )
