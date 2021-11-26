@@ -259,7 +259,7 @@ folder = createFolders()
 stateMachines = getStateMachines()   #GENERATE ALL MAIN STATE MACHINES
 # print(stateMachines)
 for machine in stateMachines:
-    os.system("python ./stateMachineGenerator.py " + machine + ".graphml")
+    os.system("python ./src/stateMachineGenerator.py " + machine + ".graphml")
 
 moveStateMachines("stateMachines", folder)
 
