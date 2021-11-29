@@ -9,6 +9,7 @@ import serial.tools.list_ports
 from datetime import datetime
 
 projectName = ""
+buildDir = ""
 
 def getStateMachines() : # function tested!
     Files = []
@@ -192,6 +193,11 @@ def getBoardType():
     #boardType =  input("for what board will you be compiling\n")
 
 def createFolders():
+    path = os.getcwd()
+
+    print("Current Directory: " + path)
+    buildDir = os.path.abspath(os.path.join(path, os.pardir))
+    #print( buildDir )
 
     folder = "../" + projectName
     try:
@@ -205,6 +211,7 @@ def createFolders():
         return folder
     except OSError:
         print("ERROR FOLDER EXISTS")
+        exit()
         pass
 
 def assembleBuildScripts():
@@ -214,7 +221,7 @@ def assembleBuildScripts():
         script.write('os.system("python src/updateIO.py")\n')
         script.write('os.system("python src/addDate.py")\n')
         script.write("print('BUILDING')\n")
-        script.write("os.system('arduino-cli compile -b " + FQBN + " c:/Users/sknippels/Documents/" + projectName + " -e')\n") #FIXME THIS PATH NEED FIXING WITH CURRENT FOLDER
+        script.write("os.system('arduino-cli compile -b " + FQBN + buildDir + " -e')\n") #FIXME THIS PATH NEED FIXING WITH CURRENT FOLDER    + projectName + 
         script.write( "exit" )
         script.close()
 
@@ -223,13 +230,13 @@ def assembleBuildScripts():
     for port, desc, hwid in sorted(ports):
         lastPort = port
 
-    with open(folder + "/src/upload.PY", "w") as script:
+    with open(folder + "/src/upload.py", "w") as script:
         script.write("#!/usr/bin/env python\n")
         script.write('import os\n')
         script.write('os.system("python src/build.py")\n')
 
         script.write( 'print("UPLOADING")\n')
-        script.write('os.system("arduino-cli upload -b ' + FQBN + ' -p ' + lastPort + ' -i c:/Users/sknippels/Documents/' + projectName + '/build/')
+        script.write('os.system("arduino-cli upload -b ' + FQBN + ' -p ' + lastPort + ' -i ' + buildDir + './build/')
         for letter in FQBN:
             if( letter == ':'):
                 script.write('.')
