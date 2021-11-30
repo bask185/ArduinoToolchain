@@ -104,6 +104,7 @@ def copyAllFiles():
     shutil.copy("src/gitInit.py"            , folder +  "/src/" )
     shutil.copy("src/release.py"            , folder +  "/src/" )
     shutil.copy("src/version.h"             , folder +  "/src/" )
+    shutil.copy("src/changelog.py"             , folder +  "/src/" )
 
 def assembleMain():
     folder2 = folder[2:]
