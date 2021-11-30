@@ -101,7 +101,7 @@ def copyAllFiles():
     shutil.copy("src/stateMachineClass.h"   , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.cpp" , folder +  "/src/" )
     shutil.copy("src/addDate.py"            , folder +  "/src/" )
-    shutil.copy("src/gitInit.sh"            , folder +  "/src/" )
+    shutil.copy("src/gitInit.py"            , folder +  "/src/" )
     shutil.copy("src/release.py"            , folder +  "/src/" )
     shutil.copy("src/version.h"             , folder +  "/src/" )
 

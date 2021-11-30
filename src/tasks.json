@@ -30,7 +30,7 @@
         {
             "label": "initialize git repository",
             "type": "shell",
-            "command": "./src/gitInit.sh",
+            "command": "./src/gitInit.py",
             "problemMatcher": []
         }
     ]
