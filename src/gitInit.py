@@ -21,9 +21,16 @@ os.system('git add --all')
 os.system('git commit -m "first commit"')
 os.system('git branch -M master')
 os.system('git tag v0.0.0')
+print("\nrepository created!\n")
 
-
-
-print( "\n\nTo push branch to github.com:" )
-print( "git remote add origin https://github.com/user_name/repository_name.git" )# argument 1 is username, argument 2 is repository name
-print( "git push -u origin master" )
+answer = ""
+while answer != 'y' and answer != 'n':
+    answer = input("Do you wish to push this repo to github.com?[y/n] (requires gh.exe to be installed\n")
+    if answer == 'y':
+        os.system('gh repo create')
+    if answer == 'n':
+        print( "\n\nTo push branch to github.com:" )
+        print( "git remote add origin https://github.com/user_name/repository_name.git" )# argument 1 is username, argument 2 is repository name
+        print( "git push -u origin master" )
+        print( "\nOR\n" )
+        print( "use 'gh repo create'")
