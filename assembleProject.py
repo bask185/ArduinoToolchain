@@ -92,7 +92,7 @@ def pickModules():
 def copyAllFiles():
     #shutil.copy("updateTimers.py"   , folder)      // OBSOLETE DUE TO FAVOR OF DIFFERENT TIMING METHOD
     #shutil.move("timers.tab"        , folder)
-    shutil.copy("src/updateIO.py"           , folder +  "/src/" )
+    #shutil.copy("src/updateIO.py"           , folder +  "/src/" ) # replaced by global executable
     shutil.copy("src/io.tab"                , folder)
     #shutil.copy("serial.cpp"        , folder)      // OBSOLETE, will be moved to the module folder
     #shutil.copy("serial.h"          , folder)
@@ -100,9 +100,9 @@ def copyAllFiles():
     shutil.copy("src/macros.h"              , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.h"   , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.cpp" , folder +  "/src/" )
-    shutil.copy("src/addDate.py"            , folder +  "/src/" )
-    shutil.copy("src/gitInit.py"            , folder +  "/src/" )
-    shutil.copy("src/release.py"            , folder +  "/src/" )
+    #shutil.copy("src/addDate.py"            , folder +  "/src/" )  # replaced by global executable
+    #shutil.copy("src/gitInit.py"            , folder +  "/src/" )  # replaced by global executable
+    #shutil.copy("src/release.py"            , folder +  "/src/" )  # replaced by global executable
     shutil.copy("src/version.h"             , folder +  "/src/" )
     #shutil.copy("src/changelog.py"             , folder +  "/src/" )
 
@@ -219,9 +219,11 @@ def assembleBuildScripts():
     with open(folder + "/src/build.py", "w") as script:
         script.write("#!/usr/bin/env python\n")
         script.write('import os\n')
-        script.write('os.system("python src/updateIO.py")\n')
-        script.write('os.system("python src/addDate.py")\n')
-        script.write("print('BUILDING')\n")
+        script.write("print('ASSEMBLING IO FILES\n')")
+        script.write('os.system("updateIO.py")\n')
+        script.write("print('ADDING TIME STAMP')\n")
+        script.write('os.system("addDate.py")\n')
+        script.write("print('BUILDING PROJECT')\n")
         script.write("os.system('arduino-cli compile -b " + FQBN + buildDir + " -e')\n") #FIXME THIS PATH NEED FIXING WITH CURRENT FOLDER    + projectName + 
         script.write( "exit" )
         script.close()

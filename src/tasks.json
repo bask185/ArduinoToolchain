@@ -6,7 +6,7 @@
         {
             "label": "update io",
             "type": "shell",
-            "command": "python ./src/updateIO.py",
+            "command": "updateIO.py",
             "problemMatcher": []
         },
         {
@@ -24,13 +24,13 @@
         {
             "label": "release new version",
             "type": "shell",
-            "command": "python ./src/release.py",
+            "command": "release.py",
             "problemMatcher": []
         },
         {
             "label": "initialize git repository",
             "type": "shell",
-            "command": "./src/gitInit.py",
+            "command": "initGit.py",
             "problemMatcher": []
         }
     ]
