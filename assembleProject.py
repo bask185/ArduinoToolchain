@@ -219,7 +219,7 @@ def assembleBuildScripts():
     with open(folder + "/src/build.py", "w") as script:
         script.write("#!/usr/bin/env python\n")
         script.write('import os\n')
-        script.write("print('ASSEMBLING IO FILES)\n'")
+        script.write("print('ASSEMBLING IO FILES')\n")
         script.write('os.system("updateIO.py")\n')
         script.write("print('ADDING TIME STAMP')\n")
         script.write('os.system("addDate.py")\n')
