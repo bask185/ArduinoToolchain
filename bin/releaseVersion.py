@@ -25,14 +25,6 @@ def getCommitText() :
         if( newLine != 'done' ):
             commitMessage += newLine + "\n"
 
-    answer = input("Do you wish to update changelog.txt? [y/n]\n")
-    if answer == 'y' or answer == 'Y':
-        os.system("git log --no-walk --tags --decorate=short | grep -v ^Author:  > changelog.txt")
-        os.system("git add changelog.txt")                                          # just in case
-        print("CHANGELOG.TXT UPDATED")
-    else:
-        print( "CHANGELOG.TXT NOT UPDATED")
-
     with open("src/temp.txt", "a") as temp: 
         temp.write(commitMessage)
         temp.close()
@@ -65,6 +57,15 @@ def tag():
     print("MAKING GIT TAG " + versionNumber)
     os.system("git tag " + versionNumber )
 
+def changelog():
+    answer = input("Do you wish to update changelog.txt? [y/n]\n")
+    if answer == 'y' or answer == 'Y':
+        os.system("git log --no-walk --tags --decorate=short | grep -v ^Author:  > changelog.txt")
+        os.system("git add changelog.txt")                                          # just in case
+        print("CHANGELOG.TXT UPDATED")
+    else:
+        print( "CHANGELOG.TXT NOT UPDATED")
+
 
 
 def push():
@@ -83,6 +84,7 @@ updateVersionNumber()
 buildProject()
 commit()
 tag()
+changelog()
 push()
 
 print("\nNEW VERSION SUCCUSFULLY RELEASED!")
