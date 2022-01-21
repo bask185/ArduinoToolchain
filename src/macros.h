@@ -26,12 +26,12 @@
 #define lowByte(x)          ((x) & 0x00FF )
 #define highByte(x)         (((X) & 0xFF00 ) > 8)
 
-#define INT8                int8_t
-#define UINT8               uint8_t
-#define INT16               int16_t
-#define UINT16              uint6_t
-#define INT32               int32_t
-#define UINT32              uint32_t
+#define int8                int8_t
+#define uint8               uint8_t
+#define int16               int16_t
+#define uint16              uint6_t
+#define int32               int32_t
+#define uint32              uint32_t
 
 #define SET(x,y)            ((x) |=  (1 << (y)))
 #define CLR(x,y)            ((x) &= ~(1 << (y)))

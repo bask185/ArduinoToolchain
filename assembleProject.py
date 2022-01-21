@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 
+
+# TODO
+# prompt if roundRobintasks are desired?            DONE
+# added more macros for serial communication        WAS DONE ALREADY
+# change FQBN string so other than arduino:avr board may also be used DONE
+
 import time
 import os
 import shutil, errno
@@ -10,6 +16,7 @@ from datetime import datetime
 
 projectName = ""
 buildDir = ""
+roundRobinTasks = 0
 
 def getStateMachines() : # function tested!
     Files = []
@@ -114,7 +121,8 @@ def assembleMain():
         main.write('#include "src/date.h"\n')
         main.write('#include "src/version.h"\n')
         main.write('#include "src/macros.h"\n')
-        main.write('#include "roundRobinTasks.h"\n')            # needed?
+        if roundRobinTasks == 1 :
+            main.write('#include "roundRobinTasks.h"\n')            # needed?
         #main.write('#include " .h"\n') #fill in custom libraries
         #main.write('#include " .h"\n')    
         
@@ -132,7 +140,8 @@ def assembleMain():
         main.write("}\n\n")
 
         main.write("void loop()\n{\n")
-        main.write("    processRoundRobinTasks() ;\n\n")
+        if roundRobinTasks == 1 :
+            main.write("    processRoundRobinTasks() ;\n\n")
         
         for machine in stateMachines:
             main.write("\t" + machine + "();\n")
@@ -140,8 +149,13 @@ def assembleMain():
         main.close()
 
 def assembleRoundRobinTasks():
-    with open(folder + "/roundRobinTasks.cpp", "w") as rr:
-        rr.write("""
+    answer = input("\nDo you wish to include files for round robin task? [Y/n]")
+    if answer == 'Y' or answer == 'y':
+        print("GENERATING ROUND ROBIN FILES\n")
+        roundRobinTasks = 1 
+
+        with open(folder + "/roundRobinTasks.cpp", "w") as rr:
+            rr.write("""
 #include "roundRobinTasks.h"
 #include "src/io.h"
 #include "src/macros.h"
@@ -171,13 +185,13 @@ extern void processRoundRobinTasks(void)
     }
 }""")
 
-        rr.close()
+            rr.close()
 
 
-    with open(folder + "/roundRobinTasks.h", "w") as rr:
-        rr.write("#include <Arduino.h>\n\n")
-        rr.write("void processRoundRobinTasks() ;\n")
-        rr.close()
+        with open(folder + "/roundRobinTasks.h", "w") as rr:
+            rr.write("#include <Arduino.h>\n\n")
+            rr.write("void processRoundRobinTasks() ;\n")
+            rr.close()
 
 def getProjectName():
 
@@ -190,7 +204,7 @@ def getBoardType():
     #subprocess.call( ['sh', './listAllBoards.sh'])
     print("For what board will you be compiling?")
     boardName = input("Choose any board name behind arduino:avr:\n")
-    return "arduino:avr:" + boardName 
+    return boardName 
     #boardType =  input("for what board will you be compiling\n")
 
 def createFolders():
@@ -278,9 +292,9 @@ pickModules()
 
 copyAllFiles()
 
-assembleMain()
-
 assembleRoundRobinTasks()
+
+assembleMain()
 
 assembleBuildScripts()
 
