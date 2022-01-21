@@ -5,6 +5,10 @@
 # prompt if roundRobintasks are desired?            DONE
 # added more macros for serial communication        WAS DONE ALREADY
 # change FQBN string so other than arduino:avr board may also be used DONE
+# investigate if following can be done:
+# change method of generating state machines so that assembleProject.py can be used as global executable.
+# Recommended to prompt if state machines are desired
+# or split the state machine script all togather so that it can be used anywhere locally
 
 import time
 import os
