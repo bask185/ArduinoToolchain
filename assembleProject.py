@@ -60,8 +60,8 @@ def moveStateMachines(_src, _dest):
             if ".gitkeep" in src_file:
                 pass
             elif "graphml" in src_file:
-                shutil.copy(src_file, dst_dir + "/stateDiagrams")        #no longer copy stuff here, not really needed for this repository
-                #shutil.move(src_file, dst_dir + "/stateDiagrams") # make me m ove instead of copy
+                #shutil.copy(src_file, dst_dir + "/stateDiagrams")        #no longer copy stuff here, not really needed for this repository
+                shutil.move(src_file, dst_dir + "/stateDiagrams") # make me m ove instead of copy
             else:
                 shutil.move(src_file, dst_dir)
 
