@@ -7,7 +7,7 @@ import platform
 def getStateMachines() : # function tested!
     slash = ""
     Files = []
-    print(platform.system())
+    #print(platform.system())
     if platform.system() == "Windows":
         slash = '\\'
     else:
@@ -47,7 +47,7 @@ file_name1 = "stateMachines/" + file_name
 #if smType == "nested":
 #    file_name = "nestedStateMachines/" + file_name
 
-print(file_name1)
+#print(file_name1)
 with open(file_name, "r") as f:
     data = f.readlines()
 
@@ -69,11 +69,14 @@ for state in states1:
 f.close()
 
 
-
+#print( "filename = " + file_name )
 new_file_name = file_name[:-8]
-new_file_name1 = "stateMachines/" + new_file_name
-#new_file_name = new_file_name.split('/')
-#new_file_name = new_file_name[1]
+#print( "new filename = " + new_file_name )
+
+#new_file_name1 = "stateMachines/" + new_file_name
+new_file_name = new_file_name.split('/')
+new_file_name = new_file_name[1]
+#print( "new filename = " + new_file_name )
 #print(new_file_name)
 
 

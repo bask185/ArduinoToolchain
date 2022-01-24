@@ -53,15 +53,15 @@ def moveStateMachines(_src, _dest):
             os.makedirs(dst_dir)
         for file_ in files:
             src_file = os.path.join(src_dir, file_)
-            #print(src_file)
+            #print("moving " + src_file)
             dst_file = os.path.join(dst_dir, file_)
             if os.path.exists(dst_file):
                 os.remove(dst_file)
             if ".gitkeep" in src_file:
                 pass
             elif "graphml" in src_file:
-                #shutil.copy(src_file, "yEd_stateMachines_repo")        // no longer copy stuff here, not really needed for this repository
-                shutil.move(src_file, dst_dir + "/stateDiagrams") # make me m ove instead of copy
+                shutil.copy(src_file, dst_dir + "/stateDiagrams")        #no longer copy stuff here, not really needed for this repository
+                #shutil.move(src_file, dst_dir + "/stateDiagrams") # make me m ove instead of copy
             else:
                 shutil.move(src_file, dst_dir)
 
@@ -105,7 +105,7 @@ def copyAllFiles():
     #shutil.move("timers.tab"        , folder)
     #shutil.copy("src/updateIO.py"           , folder +  "/src/" ) # replaced by global executable
     shutil.copy("src/io.tab"                , folder)
-    #shutil.copy("serial.cpp"        , folder)      // OBSOLETE, will be moved to the module folder
+    #shutil.copy("serial.cpp"        , folder)      // OBSOLETE, may be moved to the module folder if still used...
     #shutil.copy("serial.h"          , folder)
     shutil.copy("src/tasks.json"            , folder +  "/.vscode/" )
     shutil.copy("src/macros.h"              , folder +  "/src/" )
@@ -131,6 +131,7 @@ def assembleMain():
         #main.write('#include " .h"\n')    
         
         for machine in stateMachines:
+            machine = machine[:-8]
             main.write('#include "' + machine + '.h"\n\n')
             
         main.write("void setup()\n")
@@ -140,6 +141,7 @@ def assembleMain():
         main.write("    Serial.println( version ) ;\n")
         main.write("    Serial.println( date ) ;\n")
         for machine in stateMachines:
+            machine = machine[:-8]
             main.write("    " + machine + "Init() ;\n")
         main.write("}\n\n")
 
@@ -148,6 +150,7 @@ def assembleMain():
             main.write("    processRoundRobinTasks() ;\n\n")
         
         for machine in stateMachines:
+            machine = machine[:-8]
             main.write("\t" + machine + "();\n")
         main.write("}")
         main.close()
@@ -207,20 +210,20 @@ def getBoardType():
     subprocess.call( "arduino-cli.exe board listall" )
     #subprocess.call( ['sh', './listAllBoards.sh'])
     print("For what board will you be compiling?")
-    boardName = input("Choose any board name behind arduino:avr:\n")
+    boardName = input("Fill in a FQBN of above list\n")
     return boardName 
     #boardType =  input("for what board will you be compiling\n")
 
 def createFolders():
     path = os.getcwd()
 
-    print("Current Directory: " + path)
+    #print("Current Directory: " + path)
     buildDir = os.path.abspath(os.path.join(path, os.pardir))
     #print( buildDir )
 
     folder = "../" + projectName
     try:
-        print(folder)
+        #print(folder)
         os.makedirs(folder)
         os.makedirs(folder + "/src")
         #os.makedirs(folder + "/src/modules") #  OBSOLETE
@@ -286,9 +289,14 @@ time.sleep( 1 )
 folder = createFolders()
 
 stateMachines = getStateMachines()   #GENERATE ALL MAIN STATE MACHINES
-print(stateMachines)
+#print("stateMachines: ")
+#print( stateMachines)
 for machine in stateMachines:
+    print("GENERATING STATE MACHINES")
+    print( machine )
     os.system("python ./src/stateMachineGenerator.py " + "stateMachines/"+ machine )
+    os.system("mv *.cpp stateMachines/")
+    os.system("mv *.h stateMachines/")
 
 moveStateMachines("stateMachines", folder)
 
