@@ -1,4 +1,9 @@
-commit f45a443fb1d2be0fcd5a15d95df6cfa3744f4629 (HEAD -> master, tag: v1.0.0)
+commit 99daa6b27b3461f0d851c73f34c50fab567b6915 (HEAD -> master, tag: v1.0.1)
+Date:   Mon Jan 24 22:00:38 2022 +0100
+
+    moved .graphml files from state machine instead of copying them
+
+commit f45a443fb1d2be0fcd5a15d95df6cfa3744f4629 (tag: v1.0.0, origin/master, origin/HEAD)
 Date:   Mon Jan 24 21:48:48 2022 +0100
 
     First release worthy version. All primary components are functional.
