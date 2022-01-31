@@ -23,13 +23,13 @@
 #define printNumber_( txt, x )  Serial.print( txt ) ; Serial.print( x ) ;Serial.write(' ');
 #define printNumberln( txt, x ) Serial.print( txt ) ; Serial.println( x ) ;
 
-#define lowByte(x)          ((x) & 0x00FF )
-#define highByte(x)         (((X) & 0xFF00 ) > 8)
+// #define lowByte(x)          ((x) & 0x00FF )
+// #define highByte(x)         (((X) & 0xFF00 ) > 8)
 
 #define int8                int8_t
 #define uint8               uint8_t
 #define int16               int16_t
-#define uint16              uint6_t
+#define uint16              uint16_t
 #define int32               int32_t
 #define uint32              uint32_t
 

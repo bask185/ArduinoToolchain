@@ -11,6 +11,7 @@
 # or split the state machine script all togather so that it can be used anywhere locally
 
 import time
+import glob
 import os
 import shutil, errno
 import platform
@@ -108,6 +109,7 @@ def copyAllFiles():
     #shutil.copy("serial.cpp"        , folder)      // OBSOLETE, may be moved to the module folder if still used...
     #shutil.copy("serial.h"          , folder)
     shutil.copy("src/tasks.json"            , folder +  "/.vscode/" )
+    shutil.copy("src/stateMachine.code-snippets", folder +  "/.vscode/" )
     shutil.copy("src/macros.h"              , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.h"   , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.cpp" , folder +  "/src/" )
@@ -295,8 +297,14 @@ for machine in stateMachines:
     print("GENERATING STATE MACHINES")
     print( machine )
     os.system("python ./src/stateMachineGenerator.py " + "stateMachines/"+ machine )
-    os.system("mv *.cpp stateMachines/")
-    os.system("mv *.h stateMachines/")
+
+    for file in glob.glob('*.cpp'):
+        shutil.move(file, "stateMachines/")
+    for file in glob.glob('*.h'):
+        shutil.move(file, "stateMachines/")
+
+    #os.system("mv.exe *.cpp stateMachines/") // does not work outside vs code due to lack of git bash
+    #os.system("mv.exe *.h stateMachines/")
 
 moveStateMachines("stateMachines", folder)
 

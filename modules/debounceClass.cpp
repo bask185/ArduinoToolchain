@@ -1,8 +1,10 @@
 #include "debounceClass.h"
-Debounce::Debounce(unsigned char _pin) {
+Debounce::Debounce(unsigned char _pin)
+{
+	pin = _pin;
+	
 	if( _pin == 255 ) return ;
 	pinMode(_pin, INPUT_PULLUP); // take note I use a pull-up resistor by default
-	pin = _pin;
 }
 
 unsigned char Debounce::getState() {
@@ -53,7 +55,3 @@ void Debounce::debounce( bool newSample ) {
 
 	oldSample = newSample;
 }
-
-
-
-

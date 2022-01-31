@@ -28,6 +28,28 @@ def getStateMachines() : # function tested!
     return string
 
 stateDiagrams = getStateMachines()
+macros_used = input('''Do you want to use macro style? [Y/n]
+
+        MACROS                  |          CONVENTIONAL
+                                |
+StateFunction( someState )      |    StateFunction( someState )
+{                               |    {
+    entryState                  |        if( sm.entryState() )
+    {                           |        {
+                                |            
+    }                           |        }
+    onState                     |        if( sm.onState() )
+    {                           |        {
+                                |            
+        sm.exit() ;             |            sm.exit() ;
+    }                           |        }
+    exitState                   |        if( sm.exitState() )
+    {                           |        {
+                                |            
+        return 1 ;              |        }
+    }                           |        return sm.endState() ;
+}                               |    }
+''')
 
 arrowsOut1 = []
 arrowsIn1 = []
@@ -85,12 +107,21 @@ new_file_name = new_file_name[1]
 
 #        folder + 
 with open(new_file_name + ".cpp", "w") as c:
+
     c.write("// HEADER FILES\n")
     c.write('#include <Arduino.h>\n')
     c.write('#include "' + new_file_name + '.h"\n')
     c.write('#include "src/macros.h"\n')
     c.write('#include "src/io.h"\n')
     c.write('#include "src/stateMachineClass.h"\n\n')
+
+    if macros_used == 'Y' or macros_used == 'y':
+        c.write('''
+#define entryState  if( sm.entryState() )
+#define onState     if( sm.onState() )
+#define exitState   if( sm.exitState() == 0 ) return 0 ; \\
+                    else
+''')
     
     c.write("static StateMachine sm ;\n\n")
     c.write("//#define beginState\n")
@@ -110,23 +141,43 @@ with open(new_file_name + ".cpp", "w") as c:
 
     c.write("// STATE FUNCTIONS\n")
     for state in states:    # print all state functions
-        c.write("StateFunction( " + state + " )\n")
-        c.write("{\n")
-        c.write("    if( sm.entryState() )\n")
-        c.write("    {\n")
-        c.write("        \n")
-        c.write("    }\n")
-        c.write("    if( sm.onState() )\n")
-        c.write("    {\n")
-        c.write("        \n")
-        c.write("        sm.exit() ;\n")
-        c.write("    }\n")
-        c.write("    if( sm.exitState() )\n")
-        c.write("    {\n")
-        c.write("        \n")
-        c.write("    }\n")
-        c.write("    return sm.endState() ;\n")
-        c.write("}\n\n")
+        if macros_used == 'Y' or macros_used == 'y':
+            c.write("StateFunction( " + state + " )\n")
+            c.write("{\n")
+            c.write("    entryState\n")
+            c.write("    {\n")
+            c.write("        \n")
+            c.write("    }\n")
+            c.write("    onState\n")
+            c.write("    {\n")
+            c.write("        \n")
+            c.write("        sm.exit() ;\n")
+            c.write("    }\n")
+            c.write("    exitState\n")
+            c.write("    {\n")
+            c.write("        \n")
+            c.write("        return 1 ;\n")
+            c.write("    }\n")
+            c.write("}\n\n")          
+        
+        else:        
+            c.write("StateFunction( " + state + " )\n")
+            c.write("{\n")
+            c.write("    if( sm.entryState() )\n")
+            c.write("    {\n")
+            c.write("        \n")
+            c.write("    }\n")
+            c.write("    if( sm.onState() )\n")
+            c.write("    {\n")
+            c.write("        \n")
+            c.write("        sm.exit() ;\n")
+            c.write("    }\n")
+            c.write("    if( sm.exitState() )\n")
+            c.write("    {\n")
+            c.write("        \n")
+            c.write("    }\n")
+            c.write("    return sm.endState() ;\n")
+            c.write("}\n\n")
 
     c.write('\n// STATE MACHINE\n')
     c.write("extern uint8_t "+ new_file_name +"()\n")
