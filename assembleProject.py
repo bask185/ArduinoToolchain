@@ -249,23 +249,22 @@ def assembleBuildScripts():
 
     with open(folder + "/src/build.py", "w") as script:
         if 'nano' in FQBN :
-            answer = input("\nNANO SELECTED, DO YOU USE THE OLD BOOTLOADER? [Y/n]\n\n")
+            answer = input("NANO SELECTED, DO YOU USE THE OLD BOOTLOADER? [Y/n]\n\n")
             if answer == 'Y' or answer == 'y':
                CPU = ":cpu=atmega328old" 
 
         if 'ATTinyCore' in FQBN :
-            print("\nATTINY CORE SELECED, ENTER PARAMETERS\n")
-            CPU = ':chip=' + input("\nENTER CHIP NUMBER \n1634\n2313/4313\n24/44/84\n441/841\n25/45/85\n261/461/861\n87/167\n48/88\n43\n828\n\n")
+            print("\nATTINY CORE SELECTED\n")
+            CPU = ':chip=' + input("ENTER CHIP NUMBER \n1634\n2313/4313\n24/44/84\n441/841\n25/45/85\n261/461/861\n87/167\n48/88\n43\n828\n\n")
             time.sleep(1)
             clear()
-            CLOCK_FREQ = ",clock=" + input("\nENTER CLOCK FREQUENCE IN MHz: 1,4,6,8,12,16,20\n\n")
+            CLOCK_FREQ = ",clock=" + input("ENTER CLOCK FREQUENCE IN MHz: 1,4,6,8,12,16,20\n\n")
             time.sleep(1)
             clear()
-            CLOCK_SOURCE = input("\nENTER CLOCK SOURCE: 'internal' OR 'external'?\n\n")
+            CLOCK_SOURCE = input("ENTER CLOCK SOURCE: 'internal' OR 'external'?\n\n")
             time.sleep(1)
             clear()
-            PROGRAMMER = " --programmer " + input("""
-WHAT PROGRAMMER WILL YOU BE USING?\n
+            PROGRAMMER = " --programmer " + input("""WHAT PROGRAMMER WILL YOU BE USING?\n
 usbasp                              USBasp (ATTinyCore)
 micronucleusprog                    Micronucleus
 parallel                            Parallel Programmer
