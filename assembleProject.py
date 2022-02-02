@@ -82,7 +82,7 @@ def pickModules():
     retValue = ""
     while retValue != 'done':
         modules = os.listdir("./modules/")
-        print("\n\nSelect the modules you want to import\ntype 'done' when you are ready")
+        print("Select the modules you want to import\ntype 'done' when you are ready")
         for i, module in enumerate(modules):
             if i % 2 == 0:
                 print("{:2d}        {}".format(int(i/2), module[:-4]))
@@ -254,7 +254,7 @@ def assembleBuildScripts():
                CPU = ":cpu=atmega328old" 
 
         if 'ATTinyCore' in FQBN :
-            print("\nATTINY CORE SELECTED\n")
+            print("ATTINY CORE SELECTED\n")
             CPU = ':chip=' + input("ENTER CHIP NUMBER \n1634\n2313/4313\n24/44/84\n441/841\n25/45/85\n261/461/861\n87/167\n48/88\n43\n828\n\n")
             time.sleep(1)
             clear()
