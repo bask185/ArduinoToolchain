@@ -109,7 +109,7 @@ def copyAllFiles():
     #shutil.copy("serial.cpp"        , folder)      // OBSOLETE, may be moved to the module folder if still used...
     #shutil.copy("serial.h"          , folder)
     shutil.copy("src/tasks.json"            , folder +  "/.vscode/" )
-    shutil.copy("src/stateMachine.code-snippets", folder +  "/.vscode/" )
+    # shutil.copy("src/stateMachine.code-snippets", folder +  "/.vscode/" )  # REDUNDANT one should use a global code-snippet instead, much better
     shutil.copy("src/macros.h"              , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.h"   , folder +  "/src/" )
     shutil.copy("src/stateMachineClass.cpp" , folder +  "/src/" )
