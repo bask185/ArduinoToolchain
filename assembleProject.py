@@ -23,6 +23,10 @@ projectName = ""
 buildDir = ""
 roundRobinTasks = 0
 
+def clear():
+    time.sleep(1)
+    os.system('cls')
+
 def getStateMachines() : # function tested!
     Files = []
     if platform.system() == "Windows":
@@ -68,8 +72,6 @@ def moveStateMachines(_src, _dest):
 
 
 def pickModules():
-    #clear = lambda: os.system('cls') #on Windows System
-    #clear()
 
     # modules = os.listdir("./modules/")
     # print("\n\nSelect the modules you want to import\ntype 'done' when you are ready")
@@ -158,9 +160,10 @@ def assembleMain():
         main.close()
 
 def assembleRoundRobinTasks():
-    answer = input("\nDo you wish to include files for round robin task? [Y/n]")
+    answer = input("\nDo you wish to include files for round robin task? [Y/n]\n")
     if answer == 'Y' or answer == 'y':
         print("GENERATING ROUND ROBIN FILES\n")
+        time.sleep( 1 )
         roundRobinTasks = 1 
 
         with open(folder + "/roundRobinTasks.cpp", "w") as rr:
@@ -239,7 +242,46 @@ def createFolders():
         pass
 
 def assembleBuildScripts():
+    CPU = ""
+    CLOCK_FREQ = ""
+    CLOCK_SOURCE = ""
+    PROGRAMMER = ""
+
     with open(folder + "/src/build.py", "w") as script:
+        if 'nano' in FQBN :
+            answer = input("\nNANO SELECTED, DO YOU USE THE OLD BOOTLOADER? [Y/n]\n\n")
+            if answer == 'Y' or answer == 'y':
+               CPU = ":cpu=atmega328old" 
+
+        if 'ATTinyCore' in FQBN :
+            print("\nATTINY CORE SELECED, ENTER PARAMETERS\n")
+            CPU = ':chip=' + input("\nENTER CHIP NUMBER \n1634\n2313/4313\n24/44/84\n441/841\n25/45/85\n261/461/861\n87/167\n48/88\n43\n828\n\n")
+            time.sleep(1)
+            clear()
+            CLOCK_FREQ = ",clock=" + input("\nENTER CLOCK FREQUENCE IN MHz: 1,4,6,8,12,16,20\n\n")
+            time.sleep(1)
+            clear()
+            CLOCK_SOURCE = input("\nENTER CLOCK SOURCE: 'internal' OR 'external'?\n\n")
+            time.sleep(1)
+            clear()
+            PROGRAMMER = " --programmer " + input("""
+WHAT PROGRAMMER WILL YOU BE USING?\n
+usbasp                              USBasp (ATTinyCore)
+micronucleusprog                    Micronucleus
+parallel                            Parallel Programmer
+arduinoasisp                        Arduino as ISP
+diamexusbisp                        Diamex USB ISP
+dragon                              AVR Dragon ISP mode (ATTinyCore)
+usbtinyisp                          USBtinyISP (ATTinyCore) SLOW, for new or 1 MHz parts
+ponyser                             Ponyser Programmer
+stk500                              Atmel STK500
+arduinoasisp32u4                    Arduino Leo/Micro as ISP (ATmega32U4)
+usbtinyisp2                         USBtinyISP (ATTinyCore) FAST, for parts running >=2 MHz
+atmel_ice                           Atmel-ICE
+avrispmkii                          AVRISP mkII
+avrisp\n\n
+""")
+            
         script.write("#!/usr/bin/env python\n")
         script.write('import os\n')
         script.write("print('ASSEMBLING IO FILES')\n")
@@ -247,7 +289,7 @@ def assembleBuildScripts():
         script.write("print('ADDING TIME STAMP')\n")
         script.write('os.system("addDate.py")\n')
         script.write("print('BUILDING PROJECT')\n")
-        script.write("os.system('arduino-cli compile -b " + FQBN + buildDir + " -e')\n") #FIXME THIS PATH NEED FIXING WITH CURRENT FOLDER    + projectName + 
+        script.write("os.system('arduino-cli compile -b " + FQBN + CPU + CLOCK_FREQ + CLOCK_SOURCE + buildDir + " -e')\n") 
         script.write( "exit" )
         script.close()
 
@@ -262,7 +304,7 @@ def assembleBuildScripts():
         script.write('os.system("python src/build.py")\n')
 
         script.write( 'print("UPLOADING")\n')
-        script.write('os.system("arduino-cli upload -b ' + FQBN + ' -p ' + lastPort + ' -i ' + buildDir + './build/')
+        script.write('os.system("arduino-cli upload -b ' + FQBN + CPU + CLOCK_FREQ + CLOCK_SOURCE + PROGRAMMER + ' -p ' + lastPort + ' -i ' + buildDir + './build/')
         for letter in FQBN:
             if( letter == ':'):
                 script.write('.')
@@ -282,11 +324,13 @@ def assembleBuildScripts():
 
     
 ### BEGIN SCRIPT ###
+clear()
 projectName = getProjectName()
+clear()
 
 FQBN = getBoardType()
 print (FQBN + " selected\n" )
-time.sleep( 1 )
+clear()
 
 folder = createFolders()
 
@@ -309,15 +353,18 @@ for machine in stateMachines:
 moveStateMachines("stateMachines", folder)
 
 pickModules()
+clear()
 
 copyAllFiles()
 
 assembleRoundRobinTasks()
+clear()
 
 assembleMain()
 
 assembleBuildScripts()
+clear()
 
-input("press <ENTER> to close the program")
+input("FINISHED press <ENTER> to close the program")
 
 ### END SCRIPT ###
