@@ -19,6 +19,7 @@ import subprocess
 import serial.tools.list_ports
 from datetime import datetime
 
+
 projectName = ""
 buildDir = ""
 roundRobinTasks = 0
