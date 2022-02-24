@@ -25,15 +25,21 @@ void StateMachine::setState( uint8_t _state )
 }
 
 /**
- * @brief Lets the entry state to run again. Can be usefull from time to time
+ * @brief Lets the entry state to run again in a certain amount of time. Can be usefull from time to time
  *
- * @param N/A
+ * @param delay delayed execution if desired
  *
  * @return N/A
  */
-void StateMachine::reboot()
+void StateMachine::reboot( uint32_t _interval )
 {
     runOnce = true ;
+    if( _interval )
+    {
+        enabled = 0 ;
+        prevTime = millis() ;
+        interval = _interval ;
+    }
 }
 
 /**

@@ -24,7 +24,7 @@ public:
     void    setTimeout( uint32_t ) ;
     uint8_t timeout() ;
     void    exit() ;
-    void    reboot() ;
+    void    reboot( uint32_t ) ;
     uint8_t endState() ;
     uint8_t repeat( uint32_t ) ;
     #ifdef DEBUG
