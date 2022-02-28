@@ -128,6 +128,7 @@ void StateMachine::setTimeout( uint32_t time2run )
 {
     prevTime = millis() ;
     interval = time2run ;
+    timeOutSet = true ;
 }
 
 /**
@@ -139,7 +140,11 @@ void StateMachine::setTimeout( uint32_t time2run )
  */
 uint8_t StateMachine::timeout()
 {
-    if( millis() - prevTime >= interval ) return 1 ;
+    if( (millis() - prevTime >= interval )) && timeOutSet == true )
+    {
+        timeOutSet = false ; 
+        return 1 ;
+    }
     
     return 0 ;
 }

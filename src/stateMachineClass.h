@@ -7,8 +7,8 @@
 #else   
 #define State(x) break; case x: if(sm.runOnce) Serial.println(#x); if(x##F())   // if debug is defined, all states are stringerized and printed when entry state is run
 #endif
-#define STATE_MACHINE_BEGIN if( sm.run() ) switch( sm.getState() ) {
-#define STATE_MACHINE_END break ; } return sm.getState() ;
+#define STATE_MACHINE_BEGIN(x) if( x.run() ) switch( x.getState() ) {
+#define STATE_MACHINE_END(x) break ; } return x.getState() ;
 
 class StateMachine {
 public:
@@ -40,6 +40,7 @@ private:
     uint32_t prevTime ;
     uint32_t interval ;
     uint8_t  state;
+    uint8_t  timeOutSet ;
 } ;
 
 
