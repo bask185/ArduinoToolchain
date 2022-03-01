@@ -140,7 +140,7 @@ void StateMachine::setTimeout( uint32_t time2run )
  */
 uint8_t StateMachine::timeout()
 {
-    if( (millis() - prevTime >= interval )) && timeOutSet == true )
+    if( (millis() - prevTime) >= interval && timeOutSet == true )
     {
         timeOutSet = false ; 
         return 1 ;
@@ -181,7 +181,7 @@ uint8_t StateMachine::run()
 {
     if( enabled == 0 )
     {
-        if( millis() - prevTime >= interval )
+        if( (millis() - prevTime) >= interval )
         {
             enabled = 1 ;
         }
@@ -199,7 +199,7 @@ uint8_t StateMachine::run()
  */
 uint8_t StateMachine::repeat( uint32_t _interval )
 {
-    if( millis() - prevTime >= _interval )
+    if( (millis() - prevTime) >= _interval )
     {
         prevTime = millis() ;
         return true ;

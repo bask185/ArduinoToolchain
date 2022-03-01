@@ -1,0 +1,103 @@
+{
+	"insert stationFunction": {
+		"scope": "cpp",
+		"prefix": "StateFunction",
+		"body": [
+			"StateFunction( $1 )",
+			"{",
+			"    if( sm.entryState() )",
+			"    {",
+			"        $2",
+			"    }",
+			"    if( sm.onState() )",
+			"    {",
+			"        $3",
+			"        sm.exit() ;",
+			"    }",
+			"    if( sm.exitState() )",
+			"    {",
+			"        $4",
+			"    }",
+			"    return sm.endState()",
+			"}",
+		],
+		"description": "insert State Function"
+	},
+
+	"insert stationFunction w/ macro": {
+		"scope": "cpp",
+		"prefix": "StateFunction macro",
+		"body": [
+			"StateFunction( $1 )",
+			"{",
+			"    entryState",
+			"    {",
+			"        $2",
+			"    }",
+			"    onState",
+			"    {",
+			"        $3",
+			"        sm.exit() ;",
+			"    }",
+			"    exitState",
+			"    {",
+			"        $4",
+			"        return 1 ;",
+			"    }",
+			"}",
+		],
+		"description": "insert State Function"
+	},
+
+	"insert State": {
+		"scope": "cpp",
+		"prefix": "State",
+		"body": [
+			"State( $1 ) {",
+			"    sm.nextState( $2, ${3:0} ) ; }"
+		],
+		"description": "insert State Function"
+	},
+
+	"insert State Machine": {
+		"scope": "cpp",
+		"prefix": "StateMachine",
+		"body": [
+			"uint8_t ${1: /* name of state machine*/ } ()",
+			"{",
+			"",
+			"    STATE_MACHINE_BEGIN",
+			"",
+			"        State( $2 ) {",
+			"            sm.nextState( $3, ${4:0} ) ; }",
+			"",
+			"    STATE_MACHINE_END",
+			"}"
+		],
+		"description": "insert State Function"
+	},
+
+	"REPEAT_MS": {
+		"scope": "cpp",
+		"prefix": "repeat ms",
+		"body": [
+			"REPEAT_MS( ${1: /* interval */} )",
+			"{",
+			"    $2",
+			"} END_REPEAT",
+		],
+		"description": "insert REPEAT_MS"
+	},
+
+	"REPEAT_US": {
+		"scope": "cpp",
+		"prefix": "repeat us",
+		"body": [
+			"REPEAT_US( ${1: /* interval */} )",
+			"{",
+			"    $2",
+			"} END_REPEAT",
+		],
+		"description": "insert REPEAT_US"
+	},
+}
