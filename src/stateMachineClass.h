@@ -14,33 +14,35 @@ class StateMachine {
 public:
     StateMachine() ;
     
-    void    setState( uint8_t ) ;
-    uint8_t getState() ;
-    void    nextState( uint8_t, uint32_t ) ;
-    uint8_t entryState() ;
-    uint8_t onState() ;
-    uint8_t exitState() ;
-    uint8_t run() ;
-    void    setTimeout( uint32_t ) ;
-    uint8_t timeout() ;
-    void    exit() ;
-    void    reboot( uint32_t ) ;
-    uint8_t endState() ;
-    uint8_t repeat( uint32_t ) ;
+    void  setState( uint8 ) ;
+    uint8 getState() ;
+    void  nextState( uint8, uint32 ) ;
+    uint8 entryState() ;
+    uint8 onState() ;
+    uint8 exitState() ;
+    uint8 run() ;
+    void  setTimeout( uint32 ) ;
+    uint8 timeout() ;
+    uint8 timeoutError()
+
+    void  exit() ;
+    void  reboot( uint32 ) ;
+    uint8 endState() ;
+    uint8 repeat( uint32 ) ;
     #ifdef DEBUG
-    uint8_t  runOnce ;  // if debug is active, this must be public in order to print the state names
+    uint8  runOnce ;  // if debug is active, this must be public in order to print the state names
     #endif
     
 private:
     #ifndef DEBUG
-    uint8_t  runOnce ;  // is usually private
+    uint8  runOnce ;  // is usually private
     #endif
-    uint8_t  enabled ;
-    uint8_t  exitFlag ;
+    uint8  enabled ;
+    uint8  exitFlag ;
     uint32_t prevTime ;
     uint32_t interval ;
-    uint8_t  state;
-    uint8_t  timeOutSet ;
+    uint8  state;
+    uint8  timeOutSet ;
 } ;
 
 

@@ -17,7 +17,7 @@ StateMachine::StateMachine()
  *
  * @return N/A
  */
-void StateMachine::setState( uint8_t _state )
+void StateMachine::setState( uint8 _state )
 {
     state = _state ;
     runOnce = true ;
@@ -31,7 +31,7 @@ void StateMachine::setState( uint8_t _state )
  *
  * @return N/A
  */
-void StateMachine::reboot( uint32_t _interval )
+void StateMachine::reboot( uint32 _interval )
 {
     runOnce = true ;
     if( _interval )
@@ -49,7 +49,7 @@ void StateMachine::reboot( uint32_t _interval )
  *
  * @return current state
  */
-uint8_t StateMachine::getState()
+uint8 StateMachine::getState()
 {
     return state ;
 }
@@ -61,9 +61,9 @@ uint8_t StateMachine::getState()
  *
  * @return true or false
  */
-uint8_t StateMachine::entryState()
+uint8 StateMachine::entryState()
 {
-    uint8_t retVal = runOnce ;
+    uint8 retVal = runOnce ;
     runOnce = 0 ;
     return retVal ;
 }
@@ -75,7 +75,7 @@ uint8_t StateMachine::entryState()
  *
  * @return 1
  */
-uint8_t StateMachine::onState()
+uint8 StateMachine::onState()
 {
     return 1 ;
 }
@@ -87,7 +87,7 @@ uint8_t StateMachine::onState()
  *
  * @return true or false
  */
-uint8_t StateMachine::exitState()
+uint8 StateMachine::exitState()
 {
     return exitFlag ;
 }
@@ -111,7 +111,7 @@ void StateMachine::exit()
  *
  * @return exit flag
  */
-uint8_t StateMachine::endState( )
+uint8 StateMachine::endState( )
 {
     return exitFlag ;
 }
@@ -124,7 +124,7 @@ uint8_t StateMachine::endState( )
  *
  * @return N/A
  */
-void StateMachine::setTimeout( uint32_t time2run )
+void StateMachine::setTimeout( uint32 time2run )
 {
     prevTime = millis() ;
     interval = time2run ;
@@ -134,11 +134,9 @@ void StateMachine::setTimeout( uint32_t time2run )
 /**
  * @brief Monitors if the time in set by setTime() has passed 
  *
- * @param N/A
- *
  * @return true or false
  */
-uint8_t StateMachine::timeout()
+uint8 StateMachine::timeout()
 {
     if( (millis() - prevTime) >= interval && timeOutSet == true )
     {
@@ -150,6 +148,16 @@ uint8_t StateMachine::timeout()
 }
 
 /**
+ * @brief returns true if an timeout error has happened
+ *
+ * @return true or false
+ */
+uint8 StateMachine::timeoutError()
+{
+    return timeOutSet ;
+}
+
+/**
  * @brief Transisition from current state to the next state
  *
  * @param _state new state to execute
@@ -157,10 +165,11 @@ uint8_t StateMachine::timeout()
  *
  * @return N/A
  */
-void StateMachine::nextState( uint8_t _state, uint32_t _interval ) 
+void StateMachine::nextState( uint8 _state, uint32 _interval ) 
 {
     exitFlag = 0 ;
     runOnce = 1 ;
+    timeOutSet = 1 ;
     if( _interval )
     {
         enabled = 0 ;
@@ -177,11 +186,11 @@ void StateMachine::nextState( uint8_t _state, uint32_t _interval )
  *
  * @return enabled flag
  */
-uint8_t StateMachine::run()
+uint8 StateMachine::run()
 {
     if( enabled == 0 )
     {
-        if( (millis() - prevTime) >= interval )
+        if( millis() - prevTime >= interval )
         {
             enabled = 1 ;
         }
@@ -197,9 +206,9 @@ uint8_t StateMachine::run()
  *
  * @return enabled flag
  */
-uint8_t StateMachine::repeat( uint32_t _interval )
+uint8 StateMachine::repeat( uint32 _interval )
 {
-    if( (millis() - prevTime) >= _interval )
+    if( millis() - prevTime >= _interval )
     {
         prevTime = millis() ;
         return true ;
