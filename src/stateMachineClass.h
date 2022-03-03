@@ -23,7 +23,7 @@ public:
     uint8 run() ;
     void  setTimeout( uint32 ) ;
     uint8 timeout() ;
-    uint8 timeoutError()
+    uint8 timeoutError() ;
 
     void  exit() ;
     void  reboot( uint32 ) ;
