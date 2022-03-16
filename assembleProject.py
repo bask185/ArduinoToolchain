@@ -282,15 +282,21 @@ avrispmkii                          AVRISP mkII
 avrisp\n\n
 """)
             
-        script.write("#!/usr/bin/env python\n")
-        script.write('import os\n')
-        script.write("print('ASSEMBLING IO FILES')\n")
-        script.write('os.system("updateIO.py")\n')
-        script.write("print('ADDING TIME STAMP')\n")
-        script.write('os.system("addDate.py")\n')
-        script.write("print('BUILDING PROJECT')\n")
-        script.write("os.system('arduino-cli compile -b " + FQBN + CPU + CLOCK_FREQ + CLOCK_SOURCE + buildDir + " -e')\n") 
-        script.write( "exit" )
+        script.write( "#!/usr/bin/env python\n")
+        script.write( 'import os\n')
+        script.write('import sys\n')
+        script.write( "print('ASSEMBLING IO FILES')\n")
+        script.write( 'os.system("updateIO.py")\n')
+        script.write( "print('ADDING TIME STAMP')\n")
+        script.write( 'os.system("addDate.py")\n')
+        script.write( "print('BUILDING PROJECT')\n")
+        script.write( "x = os.system('arduino-cli compile -b " + FQBN + CPU + CLOCK_FREQ + CLOCK_SOURCE + buildDir + " -e')\n") 
+        script.write( "if x == 1 :\n" )
+        script.write( "    print('BUILD FAILED!!!')\n" )
+        script.write( "    sys.exit(1)\n" )
+        script.write( "else :\n" )
+        script.write( "    print('BUILD SUCCES!!!')\n" )
+        script.write( "    sys.exit(0)\n" )
         script.close()
 
     ports = serial.tools.list_ports.comports()
@@ -301,21 +307,25 @@ avrisp\n\n
     with open(folder + "/src/upload.py", "w") as script:
         script.write("#!/usr/bin/env python\n")
         script.write('import os\n')
-        script.write('os.system("python src/build.py")\n')
+        script.write('import sys\n')
+        script.write('retCode = os.system("python src/build.py")\n')
+        script.write('if retCode == 0 :\n')
+        script.write('    print("UPLOADING")\n')
 
-        script.write( 'print("UPLOADING")\n')
-        script.write('os.system("arduino-cli upload -b ' + FQBN + CPU + CLOCK_FREQ + CLOCK_SOURCE + PROGRAMMER + ' -p ' + lastPort + ' -i ' + buildDir + './build/')
+
+        script.write('    retCode = os.system("arduino-cli upload -b ' + FQBN + CPU + CLOCK_FREQ + CLOCK_SOURCE + PROGRAMMER + ' -p ' + lastPort + ' -i ' + buildDir + './build/')
         for letter in FQBN:
             if( letter == ':'):
                 script.write('.')
             else:
                 script.write( letter )
-        script.write('/' + projectName + '.ino.hex")\n') #FIXME THIS PATH NEED FIXING
-  
+        script.write('/' + projectName + '.ino.hex")\n')
 
-        #script.write( 'rm *.hex *.elf\n') # NOT_NEEDED 
-        script.write( "exit" )
-        script.close()
+        script.write('    if retCode == 1 :\n')
+        script.write('        print("UPLOADING FAILED!!! ")\n')
+        script.write('    else :\n')
+        script.write('        print("UPLOADING SUCCES!!! ")\n')
+        script.close()        
 
     dateTimeObj = datetime.now()
     with open(folder + "/changelog.txt", "w") as log:   # makes changelog
