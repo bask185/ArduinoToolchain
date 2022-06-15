@@ -18,7 +18,7 @@
 			"    {",
 			"        $4",
 			"    }",
-			"    return sm.endState()",
+			"    return sm.endState() ;",
 			"}",
 		],
 		"description": "insert State Function"
@@ -59,6 +59,31 @@
 		"description": "insert State Function"
 	},
 
+	"REPEAT_MS": {
+		"scope": "cpp",
+		"prefix": "repeat ms",
+		"body": [
+			"REPEAT_MS( ${1: /* interval */ } )",
+			"{",
+			"    $2",
+			"} END_REPEAT",
+		],
+		"description": "insert REPEAT_MS"
+	},
+
+	"REPEAT_US": {
+		"scope": "cpp",
+		"prefix": "repeat us",
+		"body": [
+			"REPEAT_US( ${1: /* interval */ } )",
+			"{",
+			"    $2",
+			"} END_REPEAT",
+		],
+		"description": "insert REPEAT_US"
+	},
+
+
 	"insert State Machine": {
 		"scope": "cpp",
 		"prefix": "StateMachine",
@@ -75,29 +100,5 @@
 			"}"
 		],
 		"description": "insert State Function"
-	},
-
-	"REPEAT_MS": {
-		"scope": "cpp",
-		"prefix": "repeat ms",
-		"body": [
-			"REPEAT_MS( ${1: /* interval */} )",
-			"{",
-			"    $2",
-			"} END_REPEAT",
-		],
-		"description": "insert REPEAT_MS"
-	},
-
-	"REPEAT_US": {
-		"scope": "cpp",
-		"prefix": "repeat us",
-		"body": [
-			"REPEAT_US( ${1: /* interval */} )",
-			"{",
-			"    $2",
-			"} END_REPEAT",
-		],
-		"description": "insert REPEAT_US"
 	},
 }
