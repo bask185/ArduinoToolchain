@@ -182,7 +182,7 @@ with open(new_file_name + ".cpp", "w") as c:
     c.write('\n// STATE MACHINE\n')
     c.write("extern uint8_t "+ new_file_name +"()\n")
     c.write("{\n")
-    c.write("    STATE_MACHINE_BEGIN\n\n")
+    c.write("    STATE_MACHINE_BEGIN( sm )\n\n")
     i = -1
     for state in states:
         i = i + 1
@@ -195,7 +195,7 @@ with open(new_file_name + ".cpp", "w") as c:
         if nArrows == 0:
             c.write("\n        sm.nextState( " + new_file_name + "IDLE, 0 ) ;")
         c.write(" }\n\n")
-    c.write("    STATE_MACHINE_END\n")
+    c.write("    STATE_MACHINE_END( sm )\n")
     c.write("}\n")
 
 
