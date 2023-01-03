@@ -220,7 +220,7 @@ extern unsigned char mcpRead(unsigned char pin) {
 					if iodirs[i + ioCounter] == "INPUT_PULLUP":
 						pullup[0] |= (1 << int(indices[i + ioCounter]))
 
-			f.write("\tinitMcp(0x20, {0:b}".format(iodir[0])+ ', ' + "{0:b}".format(pullup[0]) +");\n")
+			f.write("\tinitMcp(0x20, 0b{0:b}".format(iodir[0])+ ', ' + "0b{0:b}".format(pullup[0]) +");\n")
 
 		if mcpIO > 1:
 			ioCounter += mcpIO0
@@ -231,7 +231,7 @@ extern unsigned char mcpRead(unsigned char pin) {
 					if iodirs[i + ioCounter] == "INPUT_PULLUP":
 						pullup[1] |= (1 << int(indices[i + ioCounter]))
 
-			f.write("\tinitMcp(0x21, {0:b}".format(iodir[1])+ ', ' + "{0:b}".format(pullup[1]) +");\n")
+			f.write("\tinitMcp(0x21, 0b{0:b}".format(iodir[1])+ ', ' + "0b{0:b}".format(pullup[1]) +");\n")
 
 		if mcpIO > 2:
 			ioCounter += mcpIO1
@@ -241,7 +241,7 @@ extern unsigned char mcpRead(unsigned char pin) {
 					if iodirs[i + ioCounter] == "INPUT_PULLUP":
 						pullup[2] |= (1 << int(indices[i + ioCounter]))
 
-			f.write("\tinitMcp(0x22, {0:b}".format(iodir[2])+ ', ' + "{0:b}".format(pullup[2]) +");\n") 
+			f.write("\tinitMcp(0x22, 0b{0:b}".format(iodir[2])+ ', ' + "0b{0:b}".format(pullup[2]) +");\n") 
 
 		if mcpIO > 3:
 			ioCounter += mcpIO2
@@ -251,7 +251,7 @@ extern unsigned char mcpRead(unsigned char pin) {
 					if iodirs[i + ioCounter] == "INPUT_PULLUP":
 						pullup[3] |= (1 << int(indices[i + ioCounter]))
 
-			f.write("\tinitMcp(0x23, {0:b}".format(iodir[3])+ ', ' + "{0:b}".format(pullup[3]) +");\n")
+			f.write("\tinitMcp(0x23, 0b{0:b}".format(iodir[3])+ ', ' + "0b{0:b}".format(pullup[3]) +");\n")
 
 		if mcpIO > 4:
 			ioCounter += mcpIO3
@@ -261,7 +261,7 @@ extern unsigned char mcpRead(unsigned char pin) {
 					if iodirs[i + ioCounter] == "INPUT_PULLUP":
 						pullup[4] |= (1 << int(indices[i + ioCounter]))
 
-			f.write("\tinitMcp(0x24, {0:b}".format(iodir[4])+ ', ' + "{0:b}".format(pullup[4]) +");\n")
+			f.write("\tinitMcp(0x24, 0b{0:b}".format(iodir[4])+ ', ' + "0b{0:b}".format(pullup[4]) +");\n")
 
 		if mcpIO > 5:
 			ioCounter += mcpIO4
@@ -271,7 +271,7 @@ extern unsigned char mcpRead(unsigned char pin) {
 					if iodirs[i + ioCounter] == "INPUT_PULLUP":
 						pullup[5] |= (1 << int(indices[i + ioCounter]))
 
-			f.write("\tinitMcp(0x25, {0:b}".format(iodir[5])+ ', ' + "{0:b}".format(pullup[5]) +");\n")
+			f.write("\tinitMcp(0x25, 0b{0:b}".format(iodir[5])+ ', ' + "0b{0:b}".format(pullup[5]) +");\n")
 
 		if mcpIO > 6:
 			ioCounter += mcpIO5
@@ -281,7 +281,7 @@ extern unsigned char mcpRead(unsigned char pin) {
 					if iodirs[i + ioCounter] == "INPUT_PULLUP":
 						pullup[6] |= (1 << int(indices[i + ioCounter]))
 
-			f.write("\tinitMcp(0x26, {0:b}".format(iodir[6])+ ', ' + "{0:b}".format(pullup[6]) +");\n")
+			f.write("\tinitMcp(0x26, 0b{0:b}".format(iodir[6])+ ', ' + "0b{0:b}".format(pullup[6]) +");\n")
 
 		if mcpIO > 7:
 			ioCounter += mcpIO6
@@ -291,7 +291,7 @@ extern unsigned char mcpRead(unsigned char pin) {
 					if iodirs[i + ioCounter] == "INPUT_PULLUP":
 						pullup[7] |= (1 << int(indices[i + ioCounter]))
 
-			f.write("\tinitMcp(0x27, {0:b}".format(iodir[7])+ ', ' + "{0:b}".format(pullup[7]) +");\n")
+			f.write("\tinitMcp(0x27, 0b{0:b}".format(iodir[7])+ ', ' + "0b{0:b}".format(pullup[7]) +");\n")
 
 		f.write("}")
 	except:
