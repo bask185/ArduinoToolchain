@@ -16,6 +16,8 @@ with open(".git/info/exclude", "a") as f:
     f.write("*.bin\n")
     f.write("*.elf\n")
     f.write("*.eep\n")
+    f.write("*cache\n")
+    f.write("*.zip\n")
 
 os.system('git add --all')
 os.system('git commit -m "first commit"')
