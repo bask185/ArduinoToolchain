@@ -220,7 +220,7 @@ extern unsigned char mcpRead(unsigned char pin) {
 					if iodirs[i + ioCounter] == "INPUT_PULLUP":
 						pullup[0] |= (1 << int(indices[i + ioCounter]))
 
-			f.write("\tinitMcp(0x20, {0:b}".format(iodir[0])+ ', ' + "{0:b}".format(pullup[0]) +");\n")
+			f.write("\tinitMcp(0x20, 0b{0:b}".format(iodir[0])+ ', ' + "0b{0:b}".format(pullup[0]) +");\n")
 
 		if mcpIO > 1:
 			ioCounter += mcpIO0
