@@ -16,14 +16,7 @@ with open(".git/info/exclude", "a") as f:
     f.write("*.bin\n")
     f.write("*.elf\n")
     f.write("*.eep\n")
-<<<<<<< HEAD
-    f.write("*.kicad_prl\n")
-    f.write("*.kicad_pcb-bak\n")
-    f.write("*.sch-bak\n")
-    f.write("fp-info-cache\n")
-=======
     f.write("*cache\n")
->>>>>>> 9b4d8bac8d92354d9d1ad6b35cee7416ee7bb4b5
     f.write("*.zip\n")
 
 os.system('git add --all')
