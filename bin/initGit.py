@@ -2,9 +2,9 @@
 
 import os
 
-with open("README.md", "w") as f:
-    message = input("Enter a line for the README file\n")
-    f.write( message )
+#with open("README.md", "w") as f: OBSOLETE, replaced by gh.exe
+#    message = input("Enter a line for the README file\n")
+#    f.write( message )
 
 os.system('git init')
 
