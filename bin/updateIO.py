@@ -252,7 +252,7 @@ extern unsigned char mcpRead(unsigned char pin) {
 						pullup[3] |= (1 << int(indices[i + ioCounter]))
 
 			f.write("\tinitMcp(0x23, 0b{0:b}".format(iodir[3])+ ', ' + "0b{0:b}".format(pullup[3]) +");\n")
-
+ 
 		if mcpIO > 4:
 			ioCounter += mcpIO3
 			for i in range(0, mcpIO4):

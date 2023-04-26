@@ -18,6 +18,8 @@ with open(".git/info/exclude", "a") as f:
     f.write("*.eep\n")
     f.write("*cache\n")
     f.write("*.zip\n")
+    f.write("*.kicad_prl\n")
+    f.write("fp-info-cache\n")
 
 os.system('git add --all')
 os.system('git commit -m "first commit"')
