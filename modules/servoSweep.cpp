@@ -1,11 +1,9 @@
 #include "ServoSweep.h"
+#include "macros.h"
 #include <EEPROM.h>
 
-#define movingLeft 0
-#define movingRight 1
 
-
-ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _turnOff,  uint8_t _speed ) {                   // constructor 1
+ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _turnOff ) {                   // constructor 1
     
     servoPin = _servoPin ;
     servoSpeed = _speed ;
@@ -39,11 +37,21 @@ void ServoSweep::begin()
 {
     if( eeAddress != 0xFFFF ) // If EEPROM present
     {
-        if( eeFlags & DEFAULT_BIT ) // if this bit is set, we must initialize the EEPROM
+
+        uint8_t flags = EEPROM.read(eeAddress+2) ;
+
+
+        if( flags & DEFAULT_BIT > 0 ) // if this bit is set, we must initialize the EEPROM
         {
-            EEPROM.update( eeAddress+0, servoMin ) ;
-            EEPROM.update( eeAddress+1, servoMax ) ;
-            EEPROM.update( eeAddress+2,        0 ) ; // last state
+            
+            EEPROM.write( eeAddress+0, servoMin ) ;
+            EEPROM.write( eeAddress+1, servoMax ) ;
+            EEPROM.write( eeAddress+2,        0 ) ; // last state
+
+            Serial.println("setting defaults");
+            printNumber_("servoMin ",servoMin);
+            printNumber_("servoMax ",servoMax);
+            printNumberln("last state ",0);
         }
 
         servoMin = EEPROM.read( eeAddress+0 ) ;
@@ -54,6 +62,10 @@ void ServoSweep::begin()
         {
             state = EEPROM.read(eeAddress+2) ;
         }
+        Serial.println("beginning") ;
+        printNumber_("servoMin ",servoMin);
+        printNumberln("servoMax ",servoMax);
+        printNumberln("LOADING state: ", state) ;
     }
 
     if( relayPin != 0xFF ) pinMode( relayPin, OUTPUT ) ;
@@ -66,21 +78,24 @@ void ServoSweep::setState( uint8_t _state )
 
     if( eeFlags & STORE_POSITIONS )
     {
-        EEPROM.update( eeAddress+2, state ) ;
+        EEPROM.write( eeAddress+2, state ) ;
+        printNumberln("STORING state: ", state) ;
     }
+
+    printNumberln("setting state: ", state) ;
 }
 
 void ServoSweep::setMin( uint8_t _min)
 {
     servoMin = _min ;
-    EEPROM.update( eeAddress+0, servoMin ) ;
+    EEPROM.write( eeAddress+0, servoMin ) ;
     middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;
 }
 
 void ServoSweep::setMax( uint8_t _max)
 {
     servoMax = _max ;
-    EEPROM.update( eeAddress+1, servoMax ) ;
+    EEPROM.write( eeAddress+1, servoMax ) ;
     middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;
 }
 
@@ -114,12 +129,12 @@ uint8_t ServoSweep::sweep ( )
                 servo.detach( ) ; // detach motor if needed
             }
 
-            if( relayPin != 0xFF ) // SK: todo, add something that relay does not change direction
+            if( relayPin != 0xFF )
             {
-                // first operand checks if relay must be on or off, 2nd operand checks if min is smaller than max
-                uint8_t relayState = (pos < middlePosition ? 1, 0) ^ (servoMin > servoMax ? 1, 0) ;
+                // first operand checks if relay must be on or off, 2nd operand checks if min is smaller than max and comensates with XOR
+                uint8_t relayState = (pos < middlePosition ? 1 : 0) ^ (servoMin > servoMax ? 1 : 0) ;
                 digitalWrite( relayPin, relayState ) ;
-                
+
             }
             
             return pos ;

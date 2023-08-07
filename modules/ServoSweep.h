@@ -18,7 +18,7 @@ public:
 
 private:
     Servo servo ;
-    unsigned long timeToRun ;
+    uint32_t lastTime ;
     uint8_t pos ;
     uint8_t state ;
     uint8_t prevPos;
@@ -31,5 +31,4 @@ private:
     uint8_t turnOff ;
     uint8_t eeFlags ;
     uint16_t eeAddress = 0xFFFF ;
-    unsigned long currentTime = millis() ;
 } ;
