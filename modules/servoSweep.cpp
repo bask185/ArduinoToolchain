@@ -1,4 +1,5 @@
 #include "ServoSweep.h"
+#include <EEPROM.h>
 
 #define movingLeft 0
 #define movingRight 1
@@ -73,12 +74,14 @@ void ServoSweep::setMin( uint8_t _min)
 {
     servoMin = _min ;
     EEPROM.update( eeAddress+0, servoMin ) ;
+    middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;
 }
 
 void ServoSweep::setMax( uint8_t _max)
 {
     servoMax = _max ;
     EEPROM.update( eeAddress+1, servoMax ) ;
+    middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;
 }
 
 uint8_t ServoSweep::sweep ( )
