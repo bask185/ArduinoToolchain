@@ -116,8 +116,8 @@ uint8_t ServoSweep::sweep ( )
 
             if( relayPin != 0xFF ) // SK: todo, add something that relay does not change direction
             {                      //           when servo min is smaller than max
-                if( pos < middlePosition ) digitalWrite( relayPin,  LOW ) ;
-                else                       digitalWrite( relayPin, HIGH ) ;
+                if( pos < middlePosition ) digitalWrite( relayPin,  LOW ^ (servoMin > servoMax ? 1, 0) ) ;
+                else                       digitalWrite( relayPin, HIGH ^ (servoMin > servoMax ? 1, 0) ) ;
             }
             
             return pos ;
