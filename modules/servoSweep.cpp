@@ -1,16 +1,23 @@
+/*
+ServoSweep library written by S Knippels
+Public Domain
+*/
+
 #include "ServoSweep.h"
 #include "macros.h"
 #include <EEPROM.h>
 
+// use constructor 1 if you have no optional relay
+// use the other if you 
 
-ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _turnOff ) {                   // constructor 1
-    
+ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _turnOff )                    // constructor 1
+{
     servoPin = _servoPin ;
     servoSpeed = _speed ;
     servoMin = _min ;
     servoMax = _max ;
    
-    middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;               // start with middle position
+    updateMiddle() ;
 
     relayPin = 0xFF ; // no relay
 
@@ -18,14 +25,14 @@ ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _
     else           turnOff = 0 ;
 }
 
-ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _turnOff, uint8_t _relayPin ) {      // constructor 2
-    
+ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _turnOff, uint8_t _relayPin )      // constructor 2
+{    
     servoPin = _servoPin ;
     servoSpeed = _speed ;
     servoMin = _min ;
     servoMax = _max ;
 
-    middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;
+    updateMiddle() ;
 
     relayPin = _relayPin ;
 
@@ -37,35 +44,35 @@ void ServoSweep::begin()
 {
     if( eeAddress != 0xFFFF ) // If EEPROM present
     {
-
         uint8_t flags = EEPROM.read(eeAddress+2) ;
+        // printNumberln("flags ",flags);
 
-
-        if( flags & DEFAULT_BIT > 0 ) // if this bit is set, we must initialize the EEPROM
+        if( (flags & DEFAULT_BITS) > 0 ) // if any of these bit are set, we must initialize the EEPROM
         {
-            
             EEPROM.write( eeAddress+0, servoMin ) ;
             EEPROM.write( eeAddress+1, servoMax ) ;
-            EEPROM.write( eeAddress+2,        0 ) ; // last state
+            EEPROM.write( eeAddress+2, 0 ) ; // last state
 
-            Serial.println("setting defaults");
-            printNumber_("servoMin ",servoMin);
-            printNumber_("servoMax ",servoMax);
-            printNumberln("last state ",0);
+            // Serial.println("SETTING DEFAULTs");
+            // printNumber_("servoMin ",servoMin);
+            // printNumber_("servoMax ",servoMax);
+            // printNumberln("last state ",0);
         }
 
         servoMin = EEPROM.read( eeAddress+0 ) ;
         servoMax = EEPROM.read( eeAddress+1 ) ;
-        middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;
+        updateMiddle() ;
 
         if( eeFlags & STORE_POSITIONS )
         {
             state = EEPROM.read(eeAddress+2) ;
+            if( state & 1 ) pos = servoMax ;
+            else            pos = servoMin ;
         }
-        Serial.println("beginning") ;
-        printNumber_("servoMin ",servoMin);
-        printNumberln("servoMax ",servoMax);
-        printNumberln("LOADING state: ", state) ;
+        // Serial.println("beginning") ;
+        // printNumber_("servoMin ",servoMin);
+        // printNumberln("servoMax ",servoMax);
+        // printNumberln("LOADING state: ", state) ;
     }
 
     if( relayPin != 0xFF ) pinMode( relayPin, OUTPUT ) ;
@@ -74,29 +81,47 @@ void ServoSweep::begin()
 void ServoSweep::setState( uint8_t _state )
 {
     state = _state ;
-    if( turnOff ) servo.attach( servoPin ) ;
 
     if( eeFlags & STORE_POSITIONS )
     {
         EEPROM.write( eeAddress+2, state ) ;
-        printNumberln("STORING state: ", state) ;
+        // printNumberln("STORING state: ", state) ;
     }
 
-    printNumberln("setting state: ", state) ;
+    // printNumberln("setting state: ", state) ;
+}
+
+void ServoSweep::updateMiddle()
+{
+    middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;
 }
 
 void ServoSweep::setMin( uint8_t _min)
 {
     servoMin = _min ;
     EEPROM.write( eeAddress+0, servoMin ) ;
-    middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;
+    updateMiddle() ;
 }
 
 void ServoSweep::setMax( uint8_t _max)
 {
     servoMax = _max ;
     EEPROM.write( eeAddress+1, servoMax ) ;
-    middlePosition = ( (long)servoMax - (long)servoMin ) / (long)2 + (long)servoMin ;
+    updateMiddle() ;
+}
+
+void ServoSweep::increment()
+{
+    if( state ) { servoMax += 3 ;  EEPROM.write( eeAddress+1, servoMax ) ; /*printNumberln("incrementing servoMax", servoMax ) ;*/ }
+    else        { servoMin += 3 ;  EEPROM.write( eeAddress+0, servoMin ) ; /*printNumberln("incrementing servoMin", servoMin ) ;*/ }
+    updateMiddle() ;
+}
+
+void ServoSweep::decrement()
+{
+    if( state ) { servoMax -= 3 ;  EEPROM.write( eeAddress+1, servoMax ) ; /*printNumberln("decrementing servoMax", servoMax ) ;*/ }
+    else        { servoMin -= 3 ;  EEPROM.write( eeAddress+0, servoMin ) ; /*printNumberln("decrementing servoMin", servoMin ) ;*/ }
+    updateMiddle() ;
 }
 
 uint8_t ServoSweep::sweep ( )
@@ -120,6 +145,7 @@ uint8_t ServoSweep::sweep ( )
             if( pos != setPoint 
             &&  servo.attached() == false ) // attach motor if needed
             {
+                // Serial.println("engaging servo");
                 servo.attach( servoPin ) ;
             }
 
@@ -127,14 +153,16 @@ uint8_t ServoSweep::sweep ( )
             &&  turnOff == 1 )
             {
                 servo.detach( ) ; // detach motor if needed
+                // Serial.println("disengaging servo");
             }
+
+            // printNumberln("Pos: ", pos );
 
             if( relayPin != 0xFF )
             {
                 // first operand checks if relay must be on or off, 2nd operand checks if min is smaller than max and comensates with XOR
                 uint8_t relayState = (pos < middlePosition ? 1 : 0) ^ (servoMin > servoMax ? 1 : 0) ;
                 digitalWrite( relayPin, relayState ) ;
-
             }
             
             return pos ;
