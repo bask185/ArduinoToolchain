@@ -10,6 +10,9 @@ Public Domain
 // use constructor 1 if you have no optional relay
 // use the other if you 
 
+const int STORE_POSITIONS   = 0b10000000 ;
+const int DEFAULT_BITS      = 0b01111110 ;
+
 const int SERVO_EE_SIZE = 3 ;
 
 ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _turnOff )                    // constructor 1
@@ -114,15 +117,15 @@ void ServoSweep::setMax( uint8_t _max)
 
 void ServoSweep::increment()
 {
-    if( state ) { servoMax += 3 ;  EEPROM.write( eeAddress+1, servoMax ) ; /*printNumberln("incrementing servoMax", servoMax ) ;*/ }
-    else        { servoMin += 3 ;  EEPROM.write( eeAddress+0, servoMin ) ; /*printNumberln("incrementing servoMin", servoMin ) ;*/ }
+    if( state && servoMax <= 177 ) { servoMax += 3 ;  EEPROM.update( eeAddress+1, servoMax ) ; /*printNumberln("incrementing servoMax", servoMax ) ;*/ }
+    else if(     servoMin <= 177 ) { servoMin += 3 ;  EEPROM.update( eeAddress+0, servoMin ) ; /*printNumberln("incrementing servoMin", servoMin ) ;*/ }
     updateMiddle() ;
 }
 
 void ServoSweep::decrement()
 {
-    if( state ) { servoMax -= 3 ;  EEPROM.write( eeAddress+1, servoMax ) ; /*printNumberln("decrementing servoMax", servoMax ) ;*/ }
-    else        { servoMin -= 3 ;  EEPROM.write( eeAddress+0, servoMin ) ; /*printNumberln("decrementing servoMin", servoMin ) ;*/ }
+    if( state && servoMax >=   3 ) { servoMax -= 3 ;  EEPROM.update( eeAddress+1, servoMax ) ; /*printNumberln("decrementing servoMax", servoMax ) ;*/ }
+    else if(     servoMin >=   3 ) { servoMin -= 3 ;  EEPROM.update( eeAddress+0, servoMin ) ; /*printNumberln("decrementing servoMin", servoMin ) ;*/ }
     updateMiddle() ;
 }
 
@@ -177,7 +180,6 @@ uint8_t ServoSweep::sweep ( )
     }
 }
 
-//private
 void ServoSweep::setEeAddress( uint16_t _eeAddress )
 {
     static uint16 firstAddress = 0xFFFF ; // delibarately used static to automatically increase addresses
@@ -194,7 +196,6 @@ void ServoSweep::setEeAddress( uint16_t _eeAddress )
 }
 
 
-//public
 void ServoSweep::useEEPROM( uint16_t _eeAddress ) // this one is needed for the very first servo object.
 {
     setEeAddress( _eeAddress ) ;
@@ -203,4 +204,11 @@ void ServoSweep::useEEPROM( uint16_t _eeAddress ) // this one is needed for the 
 void ServoSweep::useEEPROM( )                   // use this one for all the others
 {
     setEeAddress( 0x0000 ) ;
+}
+
+/* Flag that this servo must use default values */
+void ServoSweep::reset()                        
+{
+    EEPROM.write( eeAddress+2, DEFAULT_BITS ) ; // flag begin method to load defaults
+    begin() ;                                   // call begin again to load the defaults
 }

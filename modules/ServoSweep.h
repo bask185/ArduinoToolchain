@@ -6,9 +6,6 @@ Public Domain
 #include <Arduino.h>
 #include <Servo.h>
 
-const int STORE_POSITIONS   = 0b10000000 ;
-const int DEFAULT_BITS      = 0b01111110 ;
-
 class ServoSweep
 {
 public:
@@ -23,6 +20,7 @@ public:
     void decrement( ) ;
     void useEEPROM( uint16_t _eeAddress ) ;
     void useEEPROM( ) ;
+    void reset( ) ;
 
 private:
     void        updateMiddle() ;
