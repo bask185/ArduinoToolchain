@@ -17,14 +17,16 @@ public:
     uint8_t sweep( ) ;
     void setState( uint8_t _state ) ;
     void begin( ) ;
-    void useEEPROM( uint16_t, uint8_t ) ;
     void setMin( uint8_t _min) ;
     void setMax( uint8_t _max) ;
     void increment( ) ;
     void decrement( ) ;
+    void useEEPROM( uint16_t _eeAddress ) ;
+    void useEEPROM( ) ;
 
 private:
     void        updateMiddle() ;
+    void        setEeAddress( uint16_t _eeAddress ) ;
     Servo       servo ;
     uint32_t    lastTime ;
     uint8_t     pos ;

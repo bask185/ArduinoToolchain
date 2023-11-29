@@ -10,6 +10,8 @@ Public Domain
 // use constructor 1 if you have no optional relay
 // use the other if you 
 
+const int SERVO_EE_SIZE = 3 ;
+
 ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _turnOff )                    // constructor 1
 {
     servoPin = _servoPin ;
@@ -167,6 +169,7 @@ uint8_t ServoSweep::sweep ( )
             
             return pos ;
         }
+        
         else
         {
             return 0 ;
@@ -174,8 +177,30 @@ uint8_t ServoSweep::sweep ( )
     }
 }
 
-void ServoSweep::useEEPROM( uint16_t _eeAddress, uint8_t _eeFlags )
+//private
+void ServoSweep::setEeAddress( uint16_t _eeAddress )
 {
-    eeAddress = _eeAddress ;
-    eeFlags = _eeFlags ;
+    static uint16 firstAddress = 0xFFFF ; // delibarately used static to automatically increase addresses
+
+    if( firstAddress == 0xFFFF )
+    {
+        firstAddress = _eeAddress ;
+    }
+
+    eeAddress     =  firstAddress ;      // set my own eeAddress
+    firstAddress += SERVO_EE_SIZE ; // increment for next servoSweep object
+
+    eeFlags = STORE_POSITIONS ;
+}
+
+
+//public
+void ServoSweep::useEEPROM( uint16_t _eeAddress ) // this one is needed for the very first servo object.
+{
+    setEeAddress( _eeAddress ) ;
+}
+
+void ServoSweep::useEEPROM( )                   // use this one for all the others
+{
+    setEeAddress( 0x0000 ) ;
 }
