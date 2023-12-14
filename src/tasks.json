@@ -32,6 +32,12 @@
             "type": "shell",
             "command": "initGit.py",
             "problemMatcher": []
+        },
+        {
+            "label": "Open monitor",
+            "type": "shell",
+            "command": "arduino-cli.exe monitor -p COM4 -c baudrate=115200",
+            "problemMatcher": []
         }
     ]
 }
