@@ -19,6 +19,13 @@
 #define END_REPEAT          } \
                         }
 
+
+#define toggleState static uin8t state ;  state ^= 1 ;
+#define iterateIndex(x) static uint8_t index ; if( ++ index == x ) index = 0 ;
+
+
+static uint8 index ;
+
 #define printNumber( txt, x )   Serial.print( txt ) ; Serial.print( x ) ;
 #define printNumber_( txt, x )  Serial.print( txt ) ; Serial.print( x ) ;Serial.write(' ');
 #define printNumberln( txt, x ) Serial.print( txt ) ; Serial.println( x ) ;
