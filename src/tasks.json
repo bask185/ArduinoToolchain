@@ -34,9 +34,9 @@
             "problemMatcher": []
         },
         {
-            "label": "Open Serial monitor",
+            "label": "Open monitor",
             "type": "shell",
-            "command": "monitor.py",
+            "command": "arduino-cli.exe monitor -p COM4 -c baudrate=115200",
             "problemMatcher": []
         }
     ]
