@@ -32,6 +32,12 @@
             "type": "shell",
             "command": "initGit.py",
             "problemMatcher": []
+        },
+        {
+            "label": "Open Serial monitor",
+            "type": "shell",
+            "command": "monitor.py",
+            "problemMatcher": []
         }
     ]
 }

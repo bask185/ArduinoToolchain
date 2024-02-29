@@ -14,7 +14,15 @@ const int STORE_POSITIONS   = 0b10000000 ;
 const int DEFAULT_BITS      = 0b01111110 ;
 
 const int SERVO_EE_SIZE = 3 ;
-
+/**
+ * @brief Construct a new Servo Sweep:: Servo Sweep object
+ * 
+ * @param _servoPin pin number of servo
+ * @param _min      default position for the 0 state
+ * @param _max      default position for the 1 state
+ * @param _speed    time in ms between degrees
+ * @param _turnOff  turn of the servo when in position
+ */
 ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _turnOff )                    // constructor 1
 {
     servoPin = _servoPin ;
@@ -30,6 +38,16 @@ ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _
     else           turnOff = 0 ;
 }
 
+/**
+ * @brief Construct a new Servo Sweep:: Servo Sweep object
+ * 
+ * @param _servoPin pin number of servo
+ * @param _min      default position for the 0 state
+ * @param _max      default position for the 1 state
+ * @param _speed    time in ms between degrees
+ * @param _turnOff  turn of the servo when in position
+ * @param _relayPin pin number of relay. Switches when servo is halfway
+ */
 ServoSweep::ServoSweep( uint8_t _servoPin, uint8_t _min, uint8_t _max, uint8_t _speed, uint8_t _turnOff, uint8_t _relayPin )      // constructor 2
 {    
     servoPin = _servoPin ;

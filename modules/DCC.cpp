@@ -1,551 +1,624 @@
 /*
-DCC CENTRAL by Bas Knippels
+TODO
+V repeat new instructions X amount of time 
+V count how many new instructions are waiting and if needed reduce repeat amount. 
+V add idle packets for unused slots
+V add dynamic slot allocator (IDEA: every minute or so, increment a priority counter only if an address has been used
+  in that minute OR decrement the number if it has not been used. if all slots are in use, the slot with the lowest priority number will be replaced.
+  newly allocated slots start with a random number of lets say '10'.
+V add the accesorries
+V add the accesorries extended
+V fix the directions (should be good, needs testing)
+V ensure that F0 - F4 goes well
+V ensure that speeds go well (swap 1 and 0 somewhere )
 
-This software is a very basic DCC central. It can:
-*	control DCC trains up to address 99
-*	control 28 speed steps in both directions
-*   control functions F0 through F8
+* implement loconet SLOT manager for throttles
 
-What it cannot do:
-*	read or control or do anything with CV's
-*	it has no loconet or P51 or expressNet or any other known protocols embedded.
-
-USAGE:
-You can call these functions to controll the trains
-
-  setSpeed( address, value ); 		enter 0 <> 56 for speeds -28 <> + 28
-  setHeadlight( address, value ); 	1 or 0
-  setFunctions( address, value ); 	1 - 99 are available
-  addLoco( address, decoderType );
-  deleteLoco( address );
-
-decoderTypes {
-	MM2,
-	DCC14,
-	DCC28,
-	SELECTRIX,
-	EMPTY_SLOT = 255};
-
-MM2 and selectrix are not implemented at this point.
-The decoder types are stored within the EEPROM memory
-
-THE WORKS:
-The central has 2 array buffers used to transmitt data. For the sake of efficiency 1 buffer is filled while the other buffer is clocked out to the tracks
-New instructions are put in a FIFO type buffer. This allows for more than 1 parallel process to control trains. It is possible to let this buffer
-overflow, so make sure you don't continously call the controll functions. Once is enough per change.
-
-If you want to read out the current functions of any train. You can call the getTrain function of type Train like:
-	Train currentTrain = getTrain( 40 );
-
-This struct contains these variables for you to read out.
-uint8_t	speed
-uint8_t	headlight
-uint8_t	functions
-uint8_t	decoderType
-
-Also important note: 
-Setting a function is done by sending one whole '1' in a byte. bit 0 corresponds with F1 bit 7 corresponds with F8
-Example, setting F4:
-	setFunctions( 30, 0b00001000);
-
-To clear a fuction you have to send the inverse instead.
-Example clearing F6 is done by
-	setFunctions( 20, ~0b00100000 ); // or
-	setFunctions( 20,  0b11011111 ); // same thing, different writing method
-
-If you want to toggle a function you first have to read the current function state, and set or clear your bit accordingly
-
-This is done like this because if you set or clear a function it is not needed to know the current state of all 8 functions.
-You can also controll 1 function per time with the setFunctions() method. This method should prevent people from accidently
-controlling other unintended functions.
+V TEST automatic slot manager by hardcoding some instructions _> N.B. priority system seems to work
+* TEST DCC via hardcoded instructions first test a loco, than test accessories. Also test DCC extended commands
+* TEST loconet to set accessories
+* TEST OVER CURRENT MECHANISM (use lower current settings and 1A source or so)
 
 */
 
+// #define TIMER1 NOTE TIMER 1 has mistake
+#define TIMER2
+
+#if defined TIMER1
+#define TCCR_A      TCCR1A
+#define TCCR_B      TCCR1B
+#define TCNT        TCNT1
+#define CS_0        CS10
+#define CS_1        CS11
+#define CS_2        CS12
+#define TIMSK       TIMSK1
+#define ENABLE_BIT  OCIE1A
+#define OCRA        OCR1A
+#define TIMER_COMPA_vect   TIMER1_COMPA_vect
+#define WGM_1       WGM11
+
+const int   DCC_ZERO_BIT =  1855 ; // 116us prescaler
+const int   DCC_ONE_BIT  =   927 ; // 58us 
+
+#elif defined TIMER2
+#define TCCR_A      TCCR2A
+#define TCCR_B      TCCR2B
+#define TCNT        TCNT2
+#define CS_0        CS20
+#define CS_1        CS21
+#define CS_2        CS22
+#define TIMSK       TIMSK2
+#define OCRA        OCR2A
+#define ENABLE_BIT  OCIE2A
+#define TIMER_COMPA_vect   TIMER2_COMPA_vect
+#define WGM_1       WGM21
+
+const int   DCC_ZERO_BIT =  1855/8 ; // 116us 8x prescaler
+const int   DCC_ONE_BIT  =   927/8 ; // 58us 
+
+#else
+#error NO TIMER DEFINED
+#endif
+
 // HEADER FILES
 #include "DCC.h"
-#include <EEPROM.h>
+#include "macros.h"
+#include "slot.h"
+#include "io.h" 
+#include "stateMachineClass.h"
 
-#include "src/basics/io.h" 
+uint32 beginTime ;
 
+StateMachine sm ;
 // CONSTANTS
+const int   maxPreAmble         =   17 ; // seems to be adjusted in RCN210 or 211..
+const int   _128_STEPS          = 0x3F ;
+const int   LONG_ADDRESS        = 0xC0 ;
+const int   nAccessoryRepeats   =    6 ;
+const int   nAccessories        =   10 ; // size of accessory buffer
 
-const int DCC_ZERO_BIT =  1855; // 116us
-const int DCC_ONE_BIT =  927;   // 58us
-const int MAXIMUM_CURRENT =  169; // <- true for 0.33R shunt resistor for track current for 2.5 ampere.
-const int CLEAR_SPEED =  0b11100000;
-const int bufferSize  = 250;
-const int repeatAmount =  20;
+enum packetTypes 
+{
+    speed_packet ,
+    F0_F4_packet ,
+    F5_F8_packet ,
+    F9_F12_packet ,
+    F13_F20_packet ,
+    F21_F28_packet ,
+    F29_F36_packet ,
+    accessoryPacket ,
+    accessoryExtendedPacket ,
+} ;
 
-enum states {
-	selectNewPacketType ,
-	assemblePacket ,
-	awaitPacketSent ,
-};
+enum trainCommands
+{
+    FORWARD             = 0b011  << 5,
+    DRIVE               = 0b010  << 5,
+    F0_F4_COMMAND       = 0B100  << 5, 
+    F5_F8_COMMAND       = 0B1011 << 4,
+    F9_F12_COMMAND      = 0B1010 << 4,
+    F13_F20_COMMAND     = 0b11011110 ,
+    F21_F28_COMMAND     = 0b11011111 , 
+    F29_F36_COMMAND     = 0b11011000 ,
+    // F37_F44    = 0b11011001 , Train-science does not yet believe in this BS who needs more than F36 functions
+    // F45_F52    = 0b11011010 , 
+    // F53_F60    = 0b11011011 , 
+    // F61_F68    = 0b11011100 , 
+} ;   
 
-enum packetTypes {
-	speedPacket = 1 ,
-	functionPacket1 ,
-	functionPacket2 ,
-	functionPacket3 ,
-};
+enum states
+{
+    selectNewPacketType ,
+    assemblePacket ,
+    awaitPacketSent ,
+} ;
 
-uint8_t debug = 0;
-void startDebug() 			 { if(debug) Serial.println("%%start log"); }	// sending %% lets the central know not to relay bytes to handcontroller untill 0x80 is received
-#define printDebug(x)  		   if(debug) Serial.print(x)
-#define printDebugln(x)	       if(debug) {Serial.println(x); }
-#define printBinln(x)	       if(debug) {Serial.println(x, BIN); }
-void endDebug()				 { if(debug) Serial.write(0x80); }
+enum ISRstates
+{
+    preAmble,
+    sendZero,
+    sendByte,
+    sendOne,
+    theEnd,
+} ;
 
 // VARIABLES
-Train train[ nTrains ] ; // 100 train objects are created here
 
-struct {
-	uint8_t In;							// In and Out counter are used to for FIFO buffer
-	uint8_t Out;
-	uint8_t newCommands[bufferSize];	// FIFO buffer used to store new commands
-	uint8_t toFill : 1;					// one array may be filled...
-	uint8_t toSend : 1;					// ... while the other one is clocked out to the tracks
-	uint8_t array[2][8];
-	uint8_t byteCount;					// these variable keeps track of ammount of bytes in FIFO buffer
-} buffer;								// in the event of too many instructions the program will give an error message
+struct
+{
+    uint8 data[10] ;
+    uint8 length ;                    // these variable keeps track of ammount of bytes in FIFO buffer
+} buffer[2] ;
 
-uint8_t *ptr;
-uint8_t packetType = speedPacket, sendPacket_state = 0, Bit;	// for DCC packets
-uint8_t currentAddres=0, selectedAddress=0;	// must be int to prevent overflows during makeAddres()
-uint8_t newInstructionFlag, state = assemblePacket;
+uint8   *ptr ;
+uint8   packetType = speed_packet, sendPacket_state = 0, Bit ;    // for DCC packets
+uint8   currentAddres=0 ;    // must be int to prevent overflows during makeAddres()
+uint8   newLocoInstructionFlag, state = assemblePacket ;
+uint8   newLocoInstructionCounter ;
+uint8   currentSlot ;
+uint8   toSend ;
+uint8   toFill ;
+uint8   repeatCounter ;
+uint8   currentAddress ;
+uint8   someBit ;
+uint8   repeatCount ;
+
+struct accessories          // small buffer to store accessory commands in
+{                           // if central receives more than 1 accessory instuction before the previous one is
+    uint16  address : 15 ;  // clocked out, the instruction would otherwise be discarded.
+    uint8   ext     : 1 ;
+    uint8   state ;
+} accessory[nAccessories];
+
+uint8   accessoryIn  ;
+uint8   accessoryOut ;
+uint8   accessoryNow ; // retains address information during repeats
+
 
 // CONTROL FUNCTIONS
-enum instructions {
-	speedInstruction,
-	setF1F4,
-	clrF1F4,
-	setF5F8,
-	clrF5F8,
-	headlightInstruction,
-};
-
-void setDecoderType( uint8_t _address, uint8_t type ) {
-	train[ _address ].decoderType = type;
-}
-
-uint8_t checkAddress( uint8_t _address ) {
-	for( int j = 0 ; j < nTrains; j ++ ) {
-		if( train[j].decoderType <= 2 ) return true;
-	}
-	return false;
-}
-
-void dumpData()
+enum instructions
 {
-}
+    speedInstruction,
+    setF1F4,
+    clrF1F4,
+    setF5F8,
+    clrF5F8,
+    headlightInstruction,
+} ;
 
-void scoopInBuffer(uint8_t _address, uint8_t _instruction ) {
-	if( !checkAddress ) return; // if address does not exist, disregard the instruction
-
-	buffer.newCommands[ buffer.In ++ ] = _address;
-	buffer.newCommands[ buffer.In ++ ] = _instruction;
-
-	buffer.byteCount += 2;
-	//Serial.print( "buffer in < "); Serial.println(buffer.byteCount);
-	if( buffer.byteCount >= bufferSize ) {
-		Serial.println("INSTRUCTION BUFFER HAS OVERFLOWED, YOU MORRON!!! (don't be offened, it's a joke)");
-		Serial.println("CATASTROPHIC SYSTEM FAILURE, PROGRAM HAS TERMINATED"); 
-		Serial.println("you sent too many bytes into the FIFO buffer, correct this");
-		digitalWrite( power_on, LOW );
-		//cli();
-		while ( 1 ) {
-			delay( 100 ); 	// blink led fast when this is the case
-			digitalWrite( 13, HIGH );
-			delay( 100 ); 
-			digitalWrite( 13, LOW );
-		}
-	}
-}
-
-void scoopOutBuffer(uint8_t *_address, uint8_t *_instruction) {
-	uint8_t _data;
-
-	*_address	   = buffer.newCommands[ buffer.Out ++ ];
-	*_instruction  = buffer.newCommands[ buffer.Out ++ ];
-
-	buffer.byteCount -= 2;
-
-	// static unsigned long prevTime;
-	// unsigned long currentTime = millis();
-	//Serial.print( "buffer out > "); Serial.println(buffer.byteCount);
-	//Serial.print("time "); Serial.println(currentTime - prevTime);
-	//prevTime = currentTime;
-
-	uint8_t _state = *_instruction;
-	switch( _state ) {
-		case speedInstruction:		packetType = speedPacket; 	  break;
-		case setF1F4:				packetType = functionPacket1; break;
-		case clrF1F4:				packetType = functionPacket1; break;
-		case setF5F8:				packetType = functionPacket2; break;
-		case clrF5F8:				packetType = functionPacket2; break;
-		case headlightInstruction:	packetType = functionPacket1; break;
-	}
-
-	//uint8_t data = 
-	//Serial.print("train ");Serial.println( *_address );Serial.print("speed = ");Serial.println( train[ *_address ].speed  ); // new instructions are printed after they are processed
-	//Serial.print("functions ");Serial.println( (uint8_t)train[ *_address ].functions );
-	//Serial.print("headlight ");Serial.println( (uint8_t)train[ *_address ].headLight );
-
-	newInstructionFlag = true;
-}
 
 // CONTROL FUNCTIONS TO CONTROLL DCC CENTRAL WITH
-Train getTrain( uint8_t _address ) {
-	return train[ _address ] ;
+void setAccessoryExt( uint16 address, uint8 state, uint8 ext )
+{
+    accessory[accessoryIn].address = address - 1 ;
+    accessory[accessoryIn].state   =   state ;
+    accessory[accessoryIn].ext     =     ext ;
+
+    if( ++ accessoryIn == nAccessories ) accessoryIn = 0 ; // handle overflow of index
 }
 
-void setSpeed( uint8_t _address, uint8_t _speed) {
-	train[ _address ].speed = _speed;
-	scoopInBuffer( _address, speedInstruction ) ;
+void setAccessoryExt( uint16 address, uint8 state ) // call above function and flag EXT
+{
+    setAccessoryExt( address, state, 1 ) ;
 }
 
-void Estop() {
-	
+void setAccessory( uint16 address, uint8 state )    // call above function and flag NO EXT
+{
+    setAccessoryExt( address, state, 0 ) ;
 }
 
-void stop() {
+
+void setRepeatAmount()
+{
+    uint8 waitingInstructions = 0 ;
+    for (int i = 0; i < maxSlot; i++)
+    {
+        if( slot[i].newInstruction > 0 ) waitingInstructions ++ ;
+    }
+
+                                   repeatCount = 20 ;
+    if( waitingInstructions > 10 ) repeatCount = 15 ;      // how more new packets are to be sent, how less they are repeated.
+    if( waitingInstructions > 15 ) repeatCount = 10 ;
+    if( waitingInstructions > 20 ) repeatCount =  6 ;
 }
 
-void setHeadlight( uint8_t _address, uint8_t on_off) {
-	train[ _address ].headLight = on_off;
-	scoopInBuffer(_address ,headlightInstruction );
+void toggleDir( uint16 address, uint8 speed ) // do I need a setDir instead? from loconet I may actually get a new absolute dir instead of a toggle..
+{
+    uint8 currentSlot = getSlot( address ) ;
+
+    slot[currentSlot].speed ^= (1<<7) ;                 // valid for 126 speed steps. 28 not supported at this time.
+    slot[currentSlot].newInstruction |= newSpeed ;      // set flag new instruction
+    slot[currentSlot].set = 1 ;
+    setRepeatAmount() ;
 }
 
-void setFunctions( uint8_t _address, uint8_t _functions) {
-	uint8_t ON, instruction, bitCounter = 0;
+void setSpeed( uint16 address, uint8 speed )
+{
+    uint8 currentSlot = getSlot( address ) ;
 
+    if( speed >= 1 ) speed ++ ; // skip E-stop and compensate
 
+    uint8 dir = bitRead( slot[currentSlot].speed, 7 ) ; // fetch dir
+    slot[currentSlot].speed = speed ;
+    bitWrite( slot[currentSlot].speed, 7, dir ) ;       // set dir back
 
-	for( uint8_t j = 0 ; j < 8 ; j ++ ) {
-		if( _functions & ( 1 << j ) ) bitCounter++;
-		if( bitCounter > 1) break;
-	}
-
-	if( bitCounter > 1 ) { // more than 1 bit high? -> clear function
-		if( _functions & 0x0F ) { instruction = clrF1F4; Serial.println(" clrF1F4"); }
-		else					{ instruction = clrF5F8; Serial.println(" clrF5F8"); }
-	}
-	else {					// just 1 bit hifg, set function
-		if( _functions & 0x0F )	{ instruction = setF1F4; Serial.println("setF1F4"); }
-		else					{ instruction = setF5F8; Serial.println("setF5F8"); }
-	}
-	Serial.println(_functions, BIN);
-
-	switch( instruction ) {
-		case setF1F4:	train[ _address ].functions |=  _functions; break;
-		case clrF1F4:	train[ _address ].functions &=  _functions; break;
-		case setF5F8:	train[ _address ].functions |=  _functions; break;
-		case clrF5F8:	train[ _address ].functions &=  _functions; break;
-	}
-	scoopInBuffer( _address, instruction );
+    slot[currentSlot].newInstruction |= newSpeed ;      // set flag new instruction
+    slot[currentSlot].set = 1 ;
+    setRepeatAmount() ;
 }
 
-void turnPower(uint8_t _power ) {
-	if( _power ) {
-		digitalWrite( power_on, HIGH );
-	}
-	else {
-		digitalWrite( power_on, LOW );
-	}
+void setFunction( uint16 address, uint8 Fx, uint8 state ) // note may directly insert the data from loconet.
+{
+    uint8 currentSlot = getSlot( address ) ;
+    
+    uint8 *bank ; // ALL SEEMS TO WORK HERE!!
+            if( Fx >=  0 && Fx <=  4 ) { if( -- Fx == 255 )  Fx = 4 ;          // this compensates with the position of F0
+                                        bank = &slot[currentSlot].F0_F4   ;            slot[currentSlot].newInstruction |= new_F0_F4   ; }
+    else if( Fx >=  5 && Fx <=  8 ) { bank = &slot[currentSlot].F5_F8   ; Fx -=  5 ; slot[currentSlot].newInstruction |= new_F5_F8   ; }
+    else if( Fx >=  9 && Fx <= 12 ) { bank = &slot[currentSlot].F9_F12  ; Fx -=  9 ; slot[currentSlot].newInstruction |= new_F9_F12  ; }
+    else if( Fx >= 13 && Fx <= 20 ) { bank = &slot[currentSlot].F13_F20 ; Fx -= 13 ; slot[currentSlot].newInstruction |= new_F13_F20 ; }
+    else if( Fx >= 21 && Fx <= 28 ) { bank = &slot[currentSlot].F21_F28 ; Fx -= 21 ; slot[currentSlot].newInstruction |= new_F21_F28 ; }
+    else if( Fx >= 29 && Fx <= 36 ) { bank = &slot[currentSlot].F29_F36 ; Fx -= 29 ; slot[currentSlot].newInstruction |= new_F29_F36 ; }
+
+    if( state ) *bank |=  (1<<Fx) ;
+    else        *bank &= ~(1<<Fx) ;
+
+    slot[currentSlot].set = 1 ;
+    setRepeatAmount() ;
 }
+
+
+
+
 
 /******** STATE FUNCTIONS ********/
-#define stateFunction(x) static unsigned char x##F()
+// in order of priotiry we check for:
+// if an instructions is to be/being repeated
+// if an accessory is set
+// if a loco has has new instructions
+// and otherwise we go do cyclic repeat instructions for locos
+StateFunction( selectNewPacketType )
+{
+    uint8 i = 0 ;
+    uint8 j = 0 ;
+
+    if( repeatCounter )
+    {   repeatCounter -- ;
+        // keep doing current packet
+        return 1 ;
+    }
+
+    if( accessoryIn != accessoryOut )       // an accessory has to be set..
+    {
+        if( accessory[accessoryOut].ext == 1 ) packetType = accessoryExtendedPacket ;
+        else                                   packetType = accessoryPacket ;
+
+        accessoryNow = accessoryOut ;
+        repeatCounter = nAccessoryRepeats ;         // set the amount of repeats
+
+        if( ++ accessoryOut == nAccessories )  accessoryOut = 0 ;    // handle overflow of index
+        return 1 ;
+    }
 
 
-stateFunction( selectNewPacketType ) {								// selects new packet type as well as new address
-	static uint8_t newInstructionCouter = 0, previousAddress;
+    // check for new locomotive instructions
+    for( i = 0 ; i < maxSlot ; i++ )
+    {
+        if( slot[i].newInstruction > 0 )
+        {
+            currentSlot = i ;
+            repeatCounter = repeatCount ;
+            
+            for( j = 0 ; j < 8 ; j ++ )     // we loop through speed packets all the way to F29-F36
+            {
+                uint8 mask = 1<<j ;
 
-	if( newInstructionFlag ) { 										// new instructions must be repeated atleast this many times before anything else may be printed
-		if( ++newInstructionCouter == repeatAmount ) {
-			newInstructionCouter = 0;
-			newInstructionFlag = false;
-		}
-		else {
-			return 1; 												// keep using current address and packet type
-		}
-	} 
+                if( slot[i].newInstruction &   mask )
+                {   slot[i].newInstruction &= ~mask ; 
+                  
+                    packetType = j ; 
+                    return 1 ;
+                }
+            }
+        }
+    }
 
-	if( buffer.In != buffer.Out ) {									// if in != out there is another new instruction in the buffer to be sent
-		scoopOutBuffer( &currentAddres, &packetType ); 				// this sets new address as well as packet type
-		newInstructionFlag = 1;
-	}
-	else {			
-		pickNewAddress:												// normal cycling of instructions
-		for( uint8_t i = currentAddres + 1 ; i <= nTrains - 1 ; i++ ){
-			if( train[i].decoderType <= DCC28 ) {					// check which loco is next in line
-				currentAddres = i ;
-				//Serial.print("cur addres = ");Serial.println(currentAddres);
-				break;
-			}
-		}
-		if( currentAddres == previousAddress ) { 					// if these addresses are still the same it means we have reached the last of active loco's
-																	// then we select the following packet types
-			//Serial.print("cur packetType = ");	
-			switch( packetType ) {
-				case speedPacket: 		packetType = functionPacket1;/*Serial.println(packetType);*/ break;
-				case functionPacket1:	packetType = functionPacket2;/*Serial.println(packetType);*/ break;
-				case functionPacket2:	packetType = speedPacket; 	 /*Serial.println(packetType);*/ break;
-			}
-			currentAddres = 0;
-			goto pickNewAddress;
-		}
-		previousAddress = currentAddres ; 
-		return 1;
-	}
-	return 1;
+    // nothing to repeat and no new instructions to send.
+    // cyclic loco instructions
+    if( ++ currentSlot >= maxSlot ) // loop through all slots.
+    {      currentSlot = 0 ;
+
+        // ALL ADDRESSES CYCLED, PICK NEXT PACKET TYPE
+        if( ++ packetType == nPacketTypes )
+        { 
+            packetType = 0 ;
+        }
+    }
+    // Serial.println("\r\ncyclic instruction: ") ;
+    // printNumberln("currentSlot: ", currentSlot);
+    // printNumberln("address: ", slot[currentSlot].address);
+    // printNumberln("packetType: ", packetType);
+
+    return 1 ;
 }
 
+StateFunction( assemblePacket )
+{
+    const int   speed = 0 ; // array indices
+    uint8       index = 0 ;
+            
+    toFill ^= 1 ; // toggle to the other buffer to fill
 
-stateFunction(assemblePacket) {
-	startDebug();
+    
+/******   LOCO ADDRESS    *******/
+    if( packetType < accessoryPacket )       // no accessory is due, go do locomotive
+    {
+        if( slot[currentSlot].address == 0 ) // trains with address = 0 are replaced by IDLE packets.
+        {
+            buffer[toFill].data[0] = 0xFF ;
+            buffer[toFill].data[1] = 0x00 ;
+            buffer[toFill].data[2] = 0xFF ;
+            buffer[toFill].length  =    3 ;
+            return true ;
+        } 
 
-	struct {
-		unsigned char addres;
-		unsigned char speed;
-		unsigned char functions1;
-		unsigned char functions2;
-		unsigned char checksum; 
-	} Packet;
-	
-	static unsigned char prevDir; // used to remember what the train's direction was in case the new speed becomes 0. This is needed so the light won't toggle if a train stops
-		
-	buffer.toFill ^= 1; // toggle to the other buffer to fill
+        // LOAD LOCO ADDRESS
+        if( slot[currentSlot].address > 127 )        // long address
+        {   // load long address command and high byte of address
+            buffer[toFill].data[index++] = LONG_ADDRESS | slot[currentSlot].address >> 8  ;
+        }
 
-/******	ADDRES	*******/ 
-	Packet.addres = currentAddres;
+        // load short address
+        buffer[toFill].data[index++] = slot[currentSlot].address & 0xFF ;
+    }
 
-	//if( packetType == 1) {		// merely code for debugging purposes
-	printDebug("current addres "); printDebugln(currentAddres);
-	printDebug("packet type    "); //printDebugln(packetType);
-	switch( packetType ) {
-		case 1: printDebugln("speed"); break;
-		case 2: printDebugln("function pack 1"); break;
-		case 3: printDebugln("function pack 2"); break;
-	}
-		//printDebugln("1 = speed, 2 = function pack 1, 3 = function pack 2");
-	//}
-	printDebug("speed    : "); printDebugln( train[currentAddres].speed );
-	printDebug("functions: "); printDebugln( train[currentAddres].functions );
-	printDebug("headlight: "); printDebugln( train[currentAddres].headLight );
-	
+    switch(packetType)
+    {
+    /******    SPEED    *******/ 
+    case speed_packet:
+        // for 128 steps  
+        buffer[toFill].data[index++] = _128_STEPS ;
+        buffer[toFill].data[index++] = slot[currentSlot].speed ; // first bit contains direction
+        
+        /* 28 steps NOT YET IMPLEMENTED
+        uint8 speedBits = slot[currentSlot].speed & 0b11111 ;
+        uint8    dirBit = slot[currentSlot].speed >> 5 ;
+        uint8      bit4 = bitRead( slot[currentSlot].speed, 0 ) ;
+        uint8      bit0 = bitRead( slot[currentSlot].speed, 4 ) ;
 
-	switch(packetType){																		// there are 3 types of packets, speed, F1-F4 + HL and F5-F8
-		signed char speed_tmp;																// make local variable for speed to calculate with
-	
-	/******	SPEED	*******/ 
-	case speedPacket:
-		speed_tmp = train[currentAddres].speed - 28;
-		Packet.speed = prevDir;
-		if( speed_tmp < 0 ) {														// reverse operation
-			speed_tmp = -speed_tmp;
-			Packet.speed = REVERSE; }
-		else if( speed_tmp > 0 ) {																				// forward operation
-			Packet.speed = FORWARD;	}	
-		prevDir = Packet.speed;												// store speed in 'speed_tmp' to calculate with
+        buffer[toFill].data[index++] = 
+              DRIVE 
+            | speedBits 
+            | (dirBit << 5) ;
+            |  bit0
+            | (bit4<<4) ;  // NOTE VERIFY ME
+        */
+        break ;
+    
+    // following 3 function banks fit in single byte
+    /******    FUNCTIONS F0 - F4    *******/    
+    case F0_F4_packet:
+        buffer[toFill].data[index++] = F0_F4_COMMAND | slot[currentSlot].F0_F4 ;
+        break ; 
+            
+    /******    FUNCTIONS F5 - F8    *******/ 
+    case F5_F8_packet: 
+        buffer[toFill].data[index++] = F5_F8_COMMAND | slot[currentSlot].F5_F8 ;
+        break ; 
 
-		if(speed_tmp & ESTOP_MASK) {
-			Packet.speed &= CLEAR_SPEED;													// sets the speed at E-stop without modifying the direcion bits
-			Packet.speed |= 1; } 
-		else {
+    /******    FUNCTIONS F9 - F12    *******/
+    case F9_F12_packet:
+        buffer[toFill].data[index++] = F9_F12_COMMAND | slot[currentSlot].F9_F12 ;
+        break ;
 
-			if(train[currentAddres].decoderType == DCC14) speed_tmp /= 2;
-			if(speed_tmp == 0) {															
-				//Packet.speed &= CLEAR_SPEED; 
-				Packet.speed &= 0b11100000;}// stop												// sets the speed at 0 without modifying the direction bits
-			else {						
-				if( train[currentAddres].decoderType == DCC28 ) {									// equal speed steps for DCC28 need the 5th bit set
-					Packet.speed |= ( ( speed_tmp + 3 ) / 2 );
-					if(speed_tmp % 2 == 0 ) Packet.speed |= ( 1 << 4 ); }						// set extra speed bit for DCC 28 decoders
-				else if( train[currentAddres].decoderType == DCC14 ) {
-					Packet.speed |= (speed_tmp + 1);
-					if(train[currentAddres].headLight) Packet.speed |= ( 1 << 4 ); } } }		// set headlight bit for DCC 14 decoders NOTE might be unneeded as we might be able to this in the first function unsigned char
-		
-		buffer.array[ buffer.toFill ] [ 4 ] = Packet.speed; 
-		break;
-	
-	/******	FUNCTIONS F1 - F4	*******/	
-	case functionPacket1:
-		Packet.functions1 = FUNCTIONS1;															
-		Packet.functions1 |= (train[currentAddres].functions & 0x0F);							// F1 - F4
-		if(train[currentAddres].headLight && train[currentAddres].decoderType == DCC28) {
-			Packet.functions1 |= (1<<4); 
-		}					 																	// turns light on for DCC 28 decoders, the if statement might be useless as it may do no harm to do this for dcc 14 decoders as well
-		buffer.array[ buffer.toFill ] [ 4 ] = Packet.functions1;
-		break; 
-			
-	/******	FUNCTIONS F5 - F8	*******/ 
-	case functionPacket2: 
-		Packet.functions2 = FUNCTIONS2;															
-		Packet.functions2 |= (train[currentAddres].functions >> 4);								// F5 - F8
-		buffer.array[ buffer.toFill ] [ 4] = Packet.functions2;
-		break; 
-	}
+    // the higher functions need 2 bytes
+    /******    FUNCTIONS F13 - F20    *******/
+    case F13_F20_packet:
+        buffer[toFill].data[index++] = F13_F20_COMMAND ;
+        buffer[toFill].data[index++] = slot[currentSlot].F13_F20 ;
+        break ;
 
-	/******	FUNCTIONS F9 - F12	*******/
-	/*case functionPacket3:																	// NOTE future usage
-		Packet.functions3 = FUNCTIONS2;															
-		Packet.functions3 |= (train[currentAddres].functions2 >> 4);							// F9 - F12
-		buffer.array[3] = Packet.functions3;
-		break; }*/
+    /******    FUNCTIONS F21 - F28    *******/
+    case F21_F28_packet:
+        buffer[toFill].data[index++] = F21_F28_COMMAND ;
+        buffer[toFill].data[index++] = slot[currentSlot].F21_F28 ;
+        break ; 
 
-	/***** CHECKSUM *******/	
-	Packet.checksum = Packet.addres ^ buffer.array[ buffer.toFill ] [ 4 ];									
-	
-	/***** SHIFT PACKETS FOR  BUFFER ARRAY *******/ 
-	buffer.array[ buffer.toFill ] [ 0 ] = 0x01;																// pre amble
-	buffer.array[ buffer.toFill ] [ 1 ] = 0xFF;
-	buffer.array[ buffer.toFill ] [ 2 ] = 0xFC;	// pre-amble + 2 0 bits						 				// pre amble, 0 bit, 1st 0 bit of addres unsigned char
-	buffer.array[ buffer.toFill ] [ 3 ] = Packet.addres << 1;												// addres unsigned char, 0 bit
-//	buffer.array[ buffer.toFill ] [ 4 ] is filled above
-	buffer.array[ buffer.toFill ] [ 5 ] = Packet.checksum >> 1;												// 0 bit, 7 bits of checksum
-	buffer.array[ buffer.toFill ] [ 6 ] = Packet.checksum << 7 | 1 << 6; 
+    /******    FUNCTIONS F29 - F36    *******/
+    case F29_F36_packet:
+        buffer[toFill].data[index++] = F29_F36_COMMAND ;
+        buffer[toFill].data[index++] = slot[currentSlot].F29_F36 ;
+        break ;
 
-//		11111111111111 0 11111111 0 00000000 0 11111111 1	<- IDLE PACKET
-//
-//		 0			 1			2			3			 4			5	
-//	11111111	111111_0_1	 1111111_0	 00000000	 0_1111111 	11000000
-//		0xFF	 0xFD		 0xFE		0x00			0x7F	0xC0
-	
-	// else {																											// if current addres = 0,OBSOLETE IDLE packets are no longer send
-	// 	printDebugln("idle packet");
-	// 	buffer.array[ buffer.toFill ] [ 0 ] = 0x01;																		// we overwrite the buffers to 
-	// 	buffer.array[ buffer.toFill ] [ 1 ] = 0xFF;																		// we overwrite the buffers to 
-	// 	buffer.array[ buffer.toFill ] [ 2 ] = 0xFD;																		// assemble an IDLE packet
-	// 	buffer.array[ buffer.toFill ] [ 3 ] = 0xFE;																		
-	// 	buffer.array[ buffer.toFill ] [ 4 ] = 0x00;																		
-	// 	buffer.array[ buffer.toFill ] [ 5 ] = 0x7F;
-	// 	buffer.array[ buffer.toFill ] [ 6 ] = 0xC0; 
-	// }
+//  Paket: 1 0 A A - A A A A | 1 A A A - D A A R
+//  Paket: 1 0 A A - A A A A | 0 A A A - 0 A A 1   EXT
 
+//  Adresse: – – A7 A6 - A5 A4 A3 A2 – /A10 /A9 /A8 - – A1 A0 –
+//  Adresse: – – A7 A6 - A5 A4 A3 A2 – /A10 /A9 /A8 - – A1 A0 – EXT
 
-	// printDebug("address  "); printDebugln( Packet.addres );
-	// printDebug("speed    "); printDebugln( buffer.array[ buffer.toSend ][3] & 0b11111 );
-	// printDebug("checksum "); printDebugln( Packet.checksum) ;
+    case accessoryPacket:
+    case accessoryExtendedPacket: 
+        uint8  addressLow = accessory[accessoryNow].address ;
+        uint8 addressHigh = accessory[accessoryNow].address >> 8 ;              //only A10, A9 and A8 are used
+        uint8       state = accessory[accessoryNow].state ;
+        uint8         ext = accessory[accessoryNow].ext ;
 
-	endDebug();
+        buffer[toFill].data[index++] = 0x80 | addressLow >> 2 ;                 // Puts A7 -A2 in the upper byte with A2 @ bit 0
 
-	return true;
+// NOTE POWER STATE/ACTIVE or D IS YET NOT PROCESSED. not sure if needed otherwise this function should be OKAY
+        if( ext == 0 ) // CONVENTIONAL ACCESSORY
+        { 
+        buffer[toFill].data[index++] = 0x80 | ((  addressLow & 0b011 ) << 1 )   // A1 and A0 shifted one to the left
+                                            | ((~addressHigh & 0b111 ) << 4 )   // A10, A9 and A8 all inverted and shifted 4 to the left (SEEMS TO BE OKAY)
+                                            | (        state & 0b001        ) ; // sets the direction of the accessory
+        }
+        else           // EXTENDED ACCESSORY
+        {
+        buffer[toFill].data[index++] = 0x01 | ((  addressLow & 0b011 ) << 1 )   // A1 and A0 shifted one to the left
+                                            | ((~addressHigh & 0b111 ) << 4 ) ; // invert A10, A9 and A8 and shift 4 to the left
+        buffer[toFill].data[index++] = state ;
+        }
+        break ;
+    }
+
+    /***** CHECKSUM *******/
+    
+    uint8 checksum = 0 ;
+    for( int i = 0 ; i < index ; i ++ )
+    {
+        checksum ^= buffer[toFill].data[i] ;
+    }
+
+    buffer[toFill].data[index++] = checksum ;
+    buffer[toFill].length = index  ;
+
+    return true ;
 }
-	
-stateFunction(awaitPacketSent) {
-	if( bitRead(TIMSK1,OCIE1B) ) return 0;										// if previous transmission is still bussy, return false;
-	else {																		
-		buffer.toSend = buffer.toFill ;											// select other buffer
-		ptr = &buffer.array[ buffer.toSend ] [ 0 ];								// let the pointer point to the correct ellement
 
-		bitSet(TIMSK1,OCIE1B);	// fire up the ISR
-		return 1;
-	}
+/*
+Pakket: 10AAAAAA 1AAADAAR
+Adres: – – A7 A6 - A5 A4 A3 A2 – /A10 /A9 /A8 - – A1 A0 –
+De eerstgenoemde is vanwege compatibiliteit met bestaande controlecentra
+Adres 4 = 1000-0001 1111-D00R. Dit adres wordt in gebruikersdialogen weergegeven als
+*/
+
+// 10AAAAAA 0AAA0AA1 DDDDDDDD (drei Byte Format) EXTENDED ACCESSOY
+
+    
+StateFunction( awaitPacketSent )
+{
+    if( bitRead(TIMSK,ENABLE_BIT) ) return 0 ;             // if previous packet is being transmitted, return false ;
+    else
+    {
+        beginTime = micros() ; 
+        toSend = toFill  ;                              // set buffer transmitt index correctly
+        TCNT  = 0 ;                                    // initialize timer 2
+        OCRA = DCC_ONE_BIT ;
+        TIMSK |= (1 << ENABLE_BIT);                        // and fire up the ISR..
+        return 1 ;
+    }
 }
 
 
 
 // STATE MACHINE
-byte runOnce = true;
-static void nextState(byte newState) {
-	runOnce = 1;
-	state = newState;
-}
-#define State(x) break; case x: /*if(runOnce){Serial.println(#x);runOnce=0;}*/if(x ## F())
-extern void DCCsignals(void) {
-	switch(state){
-		default: state = selectNewPacketType; Serial.println("UNKNOWN STATE ENTERED, CRITICAL BUG"); // Should not ever be sent
-		
-		State( selectNewPacketType )	nextState( assemblePacket );
+void DCCsignals()
+{
+    STATE_MACHINE_BEGIN( sm )
+    {
+        State( selectNewPacketType ) {
+            sm.nextState( assemblePacket, 0 ) ; }
 
-		State( assemblePacket )			nextState( awaitPacketSent ); 
-		
-		State( awaitPacketSent )		nextState( selectNewPacketType ); 
-		
-		break; 
-	} 
+        State( assemblePacket ) {
+            sm.nextState( awaitPacketSent, 0 ) ;  }
+        
+        State( awaitPacketSent ) {
+            sm.nextState( selectNewPacketType, 0 ) ;  }
+    } 
+    STATE_MACHINE_END( sm )
 }
 
+/***** INTERRUPT SERVICE ROUTINE ***** /        
+ISR(TIMER_COMPA_vect)
+{
 
-/***** INTERRUPT SERVICE ROUTINE *****/		
-ISR(TIMER1_COMPB_vect) {
-	static unsigned char bitMask = 0x80, ISR_state = 0;;
+    static uint8 state = preAmble ;
+    static uint8 preAmbleCounter ;
+    static uint8 *ptr ;
+    static uint8 bitMask ;
+    static uint8 ISR_state = 0 ; 
 
-	PORTD ^= 0b00011000; 													// pin 3 and 4 needs to be toggled
-	
-	ISR_state ^= 1;
-	if(ISR_state) {															// pick a bit and set duration time accordingly		
+    //if( hb ) hb() ;
 
-		if( *ptr & bitMask ){ OCR1A = DCC_ONE_BIT;	}						// '1' 58us
-		else			   	{ OCR1A = DCC_ZERO_BIT;	}						// '0' 116us
+    if( dccISR ) dccISR() ; // call this to toggle IO
 
-		if( bitMask == 0x40 && ptr == &buffer.array[ buffer.toSend ][6] ) {	// last bit?
-			bitClear(TIMSK1,OCIE1B);										// kill ISR
-		} 
-		else {																// if not last bit, shift bit mask, and increment pointer if needed
-			bitMask >>= 1;
-			if(!bitMask) {
-				bitMask = 0x80;
-				ptr++;
-			} 
-		} 
-	}
+    ISR_state ^= 1 ;
+    if(ISR_state) return ;
+
+    switch( state )
+    {
+    case preAmble:
+        OCRA = DCC_ONE_BIT ;
+        if( oneBit )  oneBit() ;
+        if( preAmbleCounter++ == maxPreAmble )
+        {
+            preAmbleCounter = 0 ;
+            state = sendZero ;
+            ptr = &buffer[toSend].data[0]-1 ; // load the pointer to the first byte
+        }
+        break ;
+
+    case sendZero:
+        OCRA = DCC_ZERO_BIT ; 
+
+        if( zeroBit2 ) zeroBit2() ; // also shows spaces
+
+        state = sendByte ; 
+        ptr++ ;
+        bitMask = 0x80 ;
+        buffer[toSend].length -- ;
+        break ;
+
+    case sendByte:
+        // Serial.println("zend byte");
+        if( *ptr & bitMask ){ OCRA =  DCC_ONE_BIT ; }
+        else                { OCRA = DCC_ZERO_BIT ; }
+        bitMask >>= 1 ;
+
+        if( OCRA ==  DCC_ONE_BIT ) if(  oneBit )  oneBit() ;
+        if( OCRA == DCC_ZERO_BIT ) if( zeroBit ) zeroBit() ;
+        
+        
+        if( bitMask == 0 ) // NOTE may need to be a 0
+        {
+            state = sendZero ;
+            if( buffer[toSend].length == 0 ) // NOTE, MAY BE BECOME POST FIX
+            {
+                state = sendOne ;
+            }
+        }
+        break ;
+
+    case sendOne:                   // send final 1 bit to flag end of dcc packet
+        if( endBit ) endBit() ;
+        OCRA = DCC_ONE_BIT ;
+        state = theEnd ;
+        break ;
+
+    case theEnd:
+        bitClear(TIMSK,ENABLE_BIT) ; // kill ISR and flag main routine that packet is transmitted.
+        state = preAmble ;
+        Serial.println(micros() - beginTime ) ;
+        break ;
+    }
 } // toggle pin 8 and 9 for direction*/
 
+/*
 
+*/
 
-void initDCC() {					 // initialize the timer 
-	cli(); 
-	bitSet(TCCR1A,WGM10);		 
-	bitSet(TCCR1A,WGM11);
-	bitSet(TCCR1B,WGM12);
-	bitSet(TCCR1B,WGM13);
+void initDCC()                     // initialize the timer
+{
+                // CSxx = pre-scaler
+/*
+CS12     CS11     CS10     MAY DIFFER FOR TIMER 0 AND 2
+  0       0       0     No Clock Timer STOP
+  0       0       1     CLK i/o /1     No Prescaling
+  0       1       0     CLK i/o /8    (From Prescaler)
+  0       1       1     CLK i/o /64   (From Prescaler)
+  1       0       0     CLK i/o /256  (From Prescaler)
+  1       0       1     CLK i/o /1024 (From Prescaler)
 
-	bitSet(TCCR1A,COM1B1);		
-	bitSet(TCCR1A,COM1B0);
+Timer overflow ISR. Called when incrementing timer reaches max value
+TOIEx  in TIMSKx registers enables this ISR
 
-	bitClear(TCCR1B,CS12);		// set prescale on 1
-	bitClear(TCCR1B,CS11);
-	bitSet(TCCR1B,CS10);
+OUTPUT compare Register OCRxA/B
+OCIExy in TIMSKx enables thiS ISR (TIMERx_COMPy_vect) 
+ CTC timer interrupts are triggered when the counter reaches a specified value, stored in the compare match register
 
-	OCR1A = DCC_ONE_BIT;
-	sei();
+Timer Input Capture: set by ICIEx in TMSKx register
+UNSURE how this works
 
-	for( int i = 1 ; i < nTrains ; i ++ ) {
-		//uint8_t type = EEPROM.read( i ); DISABLED FOR THE TIME BEING
-		//setDecoderType( i, type );
-		train[i].decoderType = DCC28;
-		train[i].speed = 28; // speed 0
-		train[i].functions = 0x00; // turn off all functions
-		train[i].headLight = 1; // yes we turn on headlights 
-	}
-	// for( int i = 1 ; i < nTrains ; i += 3 ) {
-	// 	uint8_t type = EEPROM.read( i );
-	// 	setDecoderType( i, type );
-	// 	train[i].decoderType = DCC28;
-	// }
-	sei();
-}// on/off time?
+    
+*/
+// TCCR_A   Timer/Counter Control Register A
+// COM2A1 COM2A0 COM2B1 COM2B0 – – WGM_1 WGM20
+// COM are used for PWM
 
+    cli() ; 
 
-// void print_binary(byte *ptr) { // OBSOLETE FUNCTION was used in the past to verify packet content
-// 	byte bitMask = 0x80, counter = 0;
-// 	while(1) {
-// 		if(*ptr & bitMask)	Serial.write('1');
-// 		else 				Serial.write('0');
+    TCCR_A = 0 ; // set entire TCCR_A register to 0
+    TCCR_B = 0 ;
 
-// 		bitMask >>= 1;
-// 		if(bitMask == 0) {
-// 			bitMask = 0x80;
-// 			ptr++ ;
-// 		}
-// 		counter++;
-// 		if(counter == 14 || counter == 15 || counter == 23 || counter == 24 || counter == 32 || counter == 33 || counter == 41) Serial.write(' ');
-// 		if(counter == 27) Serial.write('.');
-// 		if(counter == 42) {
-// 			Serial.println();
-// 			break;
-// 		}
-// 	}
-// }
+    TCCR_A |= (1 << WGM_1 ) ;
+
+#ifdef TIMER2
+    TCCR_B |= (0 << CS_2) | (1 << CS_1) | (0 << CS_0); // set prescaler to 8
+#endif
+   
+    TCNT  = 0 ;
+    //OCRA = 115;
+    //bitSet( TIMSK, ENABLE_BIT ) ;   // fire up the ISR     
+
+    sei() ;
+}
