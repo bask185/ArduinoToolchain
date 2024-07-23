@@ -21,8 +21,10 @@
 
 
 #define toggleState static uin8t state ;  state ^= 1 ;                          // creates a static local variable named 'state' and toggle it
-#define iterateIndex(x) static uint8_t index ; if( ++ index == x ) index = 0 ;  // creates a static local variable named 'index' and increment it to given limit before resetting
+#define iterate(var, x)  if( ++ var == x ) var = 0 ;  // creates a static local variable named 'index' and increment it to given limit before resetting
 #define ARRAY_SIZE( arr) (sizeof(arr)/sizeof(0[arr]))
+
+#define startupDelay( interval ) waitStartDelay : if( millis() <= interval ) goto waitStartDelay ;
 
 #define printNumber( txt, x )   Serial.print( txt ) ; Serial.print( x ) ;
 #define printNumber_( txt, x )  Serial.print( txt ) ; Serial.print( x ) ;Serial.write(' ');
