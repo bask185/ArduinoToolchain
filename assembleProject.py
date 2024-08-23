@@ -308,12 +308,28 @@ avrisp\n\n
         script.write("#!/usr/bin/env python\n")
         script.write('import os\n')
         script.write('import sys\n')
+        script.write('import serial.tools.list_ports\n\n')
+        script.write("""
+def get_com_port():
+    ports = list(serial.tools.list_ports.comports())
+    for port in ports:
+        if 'Arduino' in port.description or 'CH340' in port.description:
+            return port.device
+    return None
+\n""")
+        script.write("""
+com_port = get_com_port()
+if com_port is None:
+    print("No device on COM port found")
+    sys.exit(1)
+\n""")
+        
         script.write('retCode = os.system("python src/build.py")\n')
         script.write('if retCode == 0 :\n')
         script.write('    print("UPLOADING")\n')
 
 
-        script.write('    retCode = os.system("arduino-cli upload -b ' + FQBN + CPU + CLOCK_FREQ + CLOCK_SOURCE + PROGRAMMER + ' -p ' + lastPort + ' -i ' + buildDir + './build/')
+        script.write('    retCode = os.system(f"arduino-cli upload -b ' + FQBN + CPU + CLOCK_FREQ + CLOCK_SOURCE + PROGRAMMER + ' -p ' + "{com_port}" + ' -i ' + buildDir + './build/')
         for letter in FQBN:
             if( letter == ':'):
                 script.write('.')
