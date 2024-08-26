@@ -1,20 +1,26 @@
 #!/usr/bin/env python
 import os
 import subprocess
-import json 
+import json
+import serial.tools.list_ports
 
-# data = subprocess.check_output("arduino-cli board list --format json")
+def find_ch340_port():
+    ports = list(serial.tools.list_ports.comports())
+    for port in ports:
+        if 'CH340' in port.description:
+            return port.device
+    return None
 
-# dataJson = json.loads( data)
+# Automatically find the CH340 port
+COM = find_ch340_port()
 
-# for item in dataJson:
-#   print(item," : ",dataJson[item]) 
-
-COM = input("ENTER COM PORT")
-
-retCode = os.system("arduino-cli burn-bootloader -b arduino:avr:nano -p "+ COM +" -P arduinoasisp")
-
-if retCode == 1:
-    print("BURNING BOOTLOADER SUCCES!!! ")
+if COM:
+    print(f"Found CH340 USB TTL converter on {COM}")
+    retCode = os.system(f"arduino-cli burn-bootloader -b arduino:avr:nano -p {COM} -P arduinoasisp")
+    
+    if retCode == 0:
+        print("BURNING BOOTLOADER SUCCESS!!!")
+    else:
+        print("BOOTLOADER FAILED!!!")
 else:
-    print("BOOTLOADER FAILED!!! ")
+    print("CH340 USB TTL converter not found!")
