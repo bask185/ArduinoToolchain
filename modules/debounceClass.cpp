@@ -36,7 +36,7 @@ void Debounce::debounce() {
 	oldSample = newSample;
 }
 
-void Debounce::debounce( bool newSample ) {
+void Debounce::debounce( uint8 newSample ) {
 
 	if(newSample == oldSample) {	// if the same state is detected atleast twice in 20ms...
 	
