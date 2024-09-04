@@ -1,3 +1,16 @@
+/*
+ * Copyright (C) 2024 Sebastiaan Knippels, Train-Science
+ *
+ * To the extent possible under law, the person who associated CC0 with this work
+ * has waived all copyright and related or neighboring rights to this work.
+ *
+ * This work is published from: The Netherlands
+ *
+ * You can copy, modify, distribute and perform the work, even for commercial purposes,
+ * all without asking permission. See the full license for details at:
+ * https://creativecommons.org/publicdomain/zero/1.0/
+ */
+
 #include "debounceClass2.h"
 
 Debouncer::Debouncer()              // no digital read, default interval
@@ -37,12 +50,12 @@ void Debouncer::debounce( uint8 newSample )
                 statePrev = newSample ;
 
                 if( newSample ) newState =  RISING ; 
-                else      newState = FALLING ;
+                else            newState = FALLING ;
             }
             else            // or if there is no flank change return PRESSED or RELEASED
             {
-                if(newSample) newState = HIGH ; 
-                else      newState =  LOW ;
+                if( newSample ) newState = HIGH ; 
+                else            newState =  LOW ;
             }
         }
 
@@ -51,8 +64,8 @@ void Debouncer::debounce( uint8 newSample )
 
     state = newState ;
 
-    if(newState ==  RISING ) newState = HIGH ;
-    if(newState == FALLING ) newState =  LOW ;
+    if( newState ==  RISING ) newState = HIGH ;
+    if( newState == FALLING ) newState =  LOW ;
 }
 
 void Debouncer::debounce()
