@@ -17,27 +17,44 @@
 #include <Arduino.h>
 #include "macros.h"
 
+// note LOW, HIGH, FALLING and RISING are already defined in Arduino.h
+const int  BOTH = 1 ;
+const int SHORT = 1 ;
+const int  LONG = 2 ;
+
 class Debouncer
 {
 public:
-    static constexpr uint32 DEFAULT_INTERVAL = 20;  // Voeg een compile-time constante toe voor het default interval
+    Debouncer() ;
 
-    Debouncer() ;                                   // default debounce interval van 20ms
-    Debouncer( uint8 ) ;                            // default debounce interval van 20ms
-    Debouncer( uint8, uint32 ) ;    
-    Debouncer( uint32 ) ;
+    void    setFlank( uint8 ) ;            // use this with RISING, FALLING or BOTH. This may set Q and the return value of debounce() appropiately
+    void    setPin( uint8 ) ;              // enables use of digitalRead()
+    void    setDebounceTime( uint32 ) ;    // enables internal use of millis() to set debounce intervals
+    uint8   pressTime( uint32, uint8 ) ;
+    uint8   hasRisen() ;
+    uint8   hasFallen() ;
+    uint8   debounce() ;
+    uint8   debounce( uint8 ) ;
 
-    void debounce() ;
-    void debounce( uint8 ) ;
-
-    uint8     state : 2 ;
-    uint8 oldSample : 1 ;
-    uint8       pin : 6 ;
-    uint8 statePrev : 1 ;
-    uint8  newState : 2 ;
+    uint16          state : 2 ;
+    uint16      oldSample : 1 ;
+    uint16            pin : 6 ;
+    uint16      statePrev : 1 ;
+    uint16       newState : 2 ;
+    uint16          flank : 2 ;
+    uint16              Q : 1 ;
+    uint16 hasLongPressed : 1 ;
+    uint16   hasRisenFlag : 1 ;
+    uint16  hasFallenFlag : 1 ;
 
 private:
     uint32 prevTime ;
+    uint32 interval ;
+    uint32 pressStartTime ;
 } ;
+
+extern void stateChange( Debouncer* btn, uint8 state )  __attribute__ ((weak)) ;
+extern void  shortPress( Debouncer* btn )               __attribute__ ((weak)) ;
+extern void   longPress( Debouncer* btn )               __attribute__ ((weak)) ;
 
 #endif
