@@ -1,5 +1,3 @@
-
-
 /*
  * Copyright (C) 2024 Sebastiaan Knippels, Train-Science
  *
@@ -33,11 +31,11 @@ uint8 Debouncer::debounce( uint8 newSample )
 {
     if( interval == 0 || millis() - prevTime >= interval ) // having the interval at 0, should disable the operand right of && to allow faster processing
     {    
-        if( interval ) prevTime = millis() ;
+        if(interval)prevTime = millis() ;
 
-        if( newSample == oldSample )
+        if( newSample == oldSample )   // if the same state is detected at least twice in 20ms...
         {
-            if(newSample != statePrev)
+            if(newSample != statePrev) // if a flank change occured, return RISING or FALLING
             {
                 statePrev = newSample ;
 
@@ -56,7 +54,7 @@ uint8 Debouncer::debounce( uint8 newSample )
 
     if( state != newState )
     {
-        if( stateChange ) stateChange( this, newState ) ;
+        if( onStateChange ) onStateChange( this, newState ) ;
     }
 
     state = newState ;
@@ -68,8 +66,7 @@ uint8 Debouncer::debounce( uint8 newSample )
     if( newState ==  RISING ) newState = HIGH ;
     if( newState == FALLING ) newState =  LOW ;
 
-    if( flank == 0 ) return state ;
-    else             return Q ;
+    return state ;
 }
 
 uint8 Debouncer::pressTime(uint32 limit, uint8 useInternal = false)
@@ -89,14 +86,14 @@ uint8 Debouncer::pressTime(uint32 limit, uint8 useInternal = false)
 
         if (pressDuration < limit)
         {
-            if (shortPress) shortPress(this);
+            if (onShortPress) onShortPress(this);
             return SHORT ; 
         }
     }
 
     if (state == HIGH && !hasLongPressed && (millis() - pressStartTime >= limit) )
     {
-        if (longPress) longPress(this) ;
+        if (onLongPress) onLongPress(this);    // Zelfde voor lange druk
         hasLongPressed = true ;
         return LONG ;
     }

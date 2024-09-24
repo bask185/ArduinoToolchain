@@ -27,6 +27,10 @@ class Debouncer
 public:
     Debouncer() ;
 
+    void (*onShortPress)(Debouncer*) = nullptr;   // Functiepointer voor korte druk
+    void (*onLongPress)(Debouncer*) = nullptr;    // Functiepointer voor lange druk
+    void (*onStateChange)(Debouncer*, uint8) = nullptr;  // Functiepointer voor statusverandering
+
     void    setFlank( uint8 ) ;            // use this with RISING, FALLING or BOTH. This may set Q and the return value of debounce() appropiately
     void    setPin( uint8 ) ;              // enables use of digitalRead()
     void    setDebounceTime( uint32 ) ;    // enables internal use of millis() to set debounce intervals
@@ -53,8 +57,8 @@ private:
     uint32 pressStartTime ;
 } ;
 
-extern void stateChange( Debouncer* btn, uint8 state )  __attribute__ ((weak)) ;
-extern void  shortPress( Debouncer* btn )               __attribute__ ((weak)) ;
-extern void   longPress( Debouncer* btn )               __attribute__ ((weak)) ;
+//extern void stateChange( Debouncer* btn, uint8 state )  __attribute__ ((weak)) ;
+//extern void  shortPress( Debouncer* btn )               __attribute__ ((weak)) ;
+//extern void   longPress( Debouncer* btn )               __attribute__ ((weak)) ;
 
 #endif
