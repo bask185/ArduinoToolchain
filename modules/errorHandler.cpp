@@ -15,39 +15,44 @@
 
 ErrorHandler::ErrorHandler() : errorCount(0), head(0), tail(0), errorPrinted(false) {}
 
-bool ErrorHandler::pushError(const char* errorMessage, bool (*resolver)()) {
-    if (errorCount >= MAX_ERRORS) {
-        return false;  // Queue is vol
+bool ErrorHandler::pushError(const char* errorMessage, bool (*resolver)()) 
+{
+    if (errorCount >= MAX_ERRORS) 
+	{
+        return false ; 
     }
 
-    // Voeg nieuwe error toe aan de queue (op de tail positie)
-    strncpy(errorQueue[tail].message, errorMessage, sizeof(errorQueue[tail].message) - 1);
-    errorQueue[tail].message[31] = '\0';  // Zorg ervoor dat het eindigt met een null terminator
-    errorQueue[tail].resolver = resolver;
+    strncpy(errorQueue[tail].message, errorMessage, sizeof(errorQueue[tail].message) - 1) ;
+    errorQueue[tail].message[31] = '\0' ;
+    errorQueue[tail].resolver = resolver ;
 
-    // Verhoog de tail en wrap-around als deze het einde van de array bereikt
-    tail = (tail + 1) % MAX_ERRORS;
-    errorCount++;
+    tail = (tail + 1) % MAX_ERRORS ;
+    errorCount++ ;
     
-    return true;
+    return true ;
 }
 
-void ErrorHandler::processErrors() {
-    if (errorCount == 0) {
-        return;  // Geen errors om te verwerken
+void ErrorHandler::processErrors() 
+{
+    if (errorCount == 0) 
+	{
+        return ; 
     }
 
-    // Print de huidige error slechts één keer
-    if (!errorPrinted) {
-        Serial.println(errorQueue[head].message);
-        errorPrinted = true;
+    if (!errorPrinted) 
+	{
+        if( printError )
+        {
+            printError( errorQueue[head].message ) ; // instead of using Serial from arduino, I use a callback to keep it plain C++
+        }
+    
+        errorPrinted = true ;
     }
 
-    // Roep de resolver aan voor de huidige error
-    if (errorQueue[head].resolver()) {
-        // Als de error is opgelost, verwijder de huidige error (FIFO)
-        head = (head + 1) % MAX_ERRORS;
-        errorCount--;
-        errorPrinted = false;  // Reset de print status voor de volgende error
+    if (errorQueue[head].resolver()) 
+	{
+        head = (head + 1) % MAX_ERRORS ;
+        errorCount-- ;
+        errorPrinted = false ;
     }
 }

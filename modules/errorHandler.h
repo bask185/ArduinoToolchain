@@ -16,30 +16,31 @@
 
 #include <Arduino.h>
 
-const int MAX_ERRORS = 10;
+const int MAX_ERRORS = 10  ;
 
-class ErrorHandler {
+class ErrorHandler
+{
 public:
-    // Struct om een error te representeren
-    struct Error {
-        char message[32];
-        bool (*resolver)();
-    };
+    struct Error
+    {
+        char message[32] ;
+        bool (*resolver)() ;
+    } ;
 
-    ErrorHandler();
+    ErrorHandler() ;
 
-    // Voegt een error toe aan de queue
-    bool pushError(const char* errorMessage, bool (*resolver)());
+    bool pushError(const char* errorMessage, bool (*resolver)()) ;
 
-    // Verwerkt de huidige error als die bestaat
-    void processErrors();
+    void processErrors() ;
 
 private:
-    Error errorQueue[MAX_ERRORS];  // Array om errors te bufferen
-    int errorCount;                // Aantal huidige errors in de queue
-    int head;                      // Index van de eerste error (FIFO)
-    int tail;                      // Index van de laatste error (FIFO)
-    bool errorPrinted;             // Geeft aan of de huidige error al is geprint
-};
+    Error   errorQueue[MAX_ERRORS] ;
+    int     errorCount ;
+    int     head ;
+    int     tail ;
+    bool    errorPrinted ;
+} ;
+
+void printError( const char* message ) __attribute__((weak)) ; 
 
 #endif
