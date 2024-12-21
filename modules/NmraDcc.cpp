@@ -800,7 +800,7 @@ uint8_t readEEPROM (unsigned int CV)
 
 void writeEEPROM (unsigned int CV, uint8_t Value)
 {
-    EEPROM.write (CV, Value) ;
+    //EEPROM.write (CV, Value) ;
     #if defined(ESP8266) ||  defined(ESP32) || defined(ARDUINO_ARCH_RP2040)
     EEPROM.commit();
     #endif
