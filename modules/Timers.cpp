@@ -1,8 +1,19 @@
 #include "Timers.h"
 
-#include <Arduino.h>
+BaseTimer::BaseTimer()
+{
+    startTrigger = 1 ;
+    endTrigger   = 1 ;
+}
 
-uint8_t TON_timer::update(uint8_t IN) 
+
+void BaseTimer::setTime( uint32_t time )
+{
+    presetTime = time ;
+}
+
+
+uint8_t TIMER_ON::update(uint8_t IN) 
 {
     Q = 0 ;
     if( !IN )
@@ -26,7 +37,8 @@ uint8_t TON_timer::update(uint8_t IN)
     return Q ;
 }
 
-uint8_t TOFF_timer::update(uint8_t IN) 
+
+uint8_t TIMER_OFF::update(uint8_t IN) 
 {
     Q = 0 ;
     if( IN )
@@ -50,7 +62,8 @@ uint8_t TOFF_timer::update(uint8_t IN)
     return Q ;
 }
 
-uint8_t BlinkTimer::update(uint8_t IN) 
+
+uint8_t TIMER_BLEEP::update(uint8_t IN) 
 {
     if( !IN )
     {
@@ -60,11 +73,31 @@ uint8_t BlinkTimer::update(uint8_t IN)
     if( IN && (millis() - startTime) >= presetTime )
     {
         startTime = millis() ;
-        Q = !Q ;
+        Q = 1 ;
     }
     else
     {
         Q = 0 ;
     }
+    return Q ;
+}
+
+
+uint8_t TIMER_PULSE::update(uint8_t IN) 
+{
+    if( !IN )
+    {
+        startTime = millis() ;
+        endTrigger   = 1 ;
+    }
+
+    if( endTrigger == 1 && (millis() - startTime) >= presetTime )
+    {
+        endTrigger = 0 ;
+    }
+
+    if( IN && endTrigger ) Q = 1 ; 
+    else                   Q = 0 ;
+
     return Q ;
 }

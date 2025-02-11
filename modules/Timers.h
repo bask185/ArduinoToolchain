@@ -6,36 +6,47 @@
 class BaseTimer 
 {
 protected:
-    uint32_t presetTime;
-    uint32_t startTime;
-    bool startTrigger;
-    bool endTrigger;
+    uint32_t    presetTime ;
+    uint32_t    startTime ;
+    bool        startTrigger ;
+    bool        endTrigger ;
 
 public:
-    bool Q;
-    BaseTimer(uint32_t presetTime) : presetTime(presetTime), startTime(0), startTrigger(false), endTrigger(true), Q(false) {}
-    virtual uint8_t update(uint8_t IN) = 0;
-    virtual ~BaseTimer() {}
+    bool Q ;
+    BaseTimer() ;
+    virtual uint8_t update(uint8_t IN) = 0 ;
+    void setTime( uint32_t presetTime ) ;
 };
 
-class TON_timer : public BaseTimer 
+
+class TIMER_ON : public BaseTimer 
 {
 public:
-    TON_timer(uint32_t presetTime) : BaseTimer(presetTime) {}
+    TIMER_ON() {}
     uint8_t update(uint8_t IN) override;
 };
 
-class TOFF_timer : public BaseTimer 
+
+class TIMER_OFF : public BaseTimer 
 {
 public:
-    TOFF_timer(uint32_t presetTime) : BaseTimer(presetTime) {}
+    TIMER_OFF() {}
     uint8_t update(uint8_t IN) override;
 };
 
-class BlinkTimer : public BaseTimer 
+
+class TIMER_BLEEP : public BaseTimer 
 {
 public:
-    BlinkTimer(uint32_t presetTime) : BaseTimer(presetTime) {}
+    BlinkTimer() {}
+    uint8_t update(uint8_t IN) override;
+};
+
+
+class TIMER_PULSE : public BaseTimer 
+{
+public:
+    pulseTimer() {}
     uint8_t update(uint8_t IN) override;
 };
 
