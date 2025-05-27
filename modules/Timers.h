@@ -5,17 +5,13 @@
 
 class BaseTimer 
 {
-protected:
-    uint32_t    presetTime ;
-    uint32_t    startTime ;
-    bool        startTrigger ;
-    bool        endTrigger ;
-
 public:
-    bool Q ;
+    uint32_t    PT ;
+    uint32_t    ET ;
+    bool        Q ;
+
     BaseTimer() ;
     virtual uint8_t update(uint8_t IN) = 0 ;
-    void setTime( uint32_t presetTime ) ;
 };
 
 
@@ -38,7 +34,7 @@ public:
 class TIMER_BLEEP : public BaseTimer 
 {
 public:
-    BlinkTimer() {}
+    TIMER_BLEEP() {}
     uint8_t update(uint8_t IN) override;
 };
 
@@ -46,7 +42,7 @@ public:
 class TIMER_PULSE : public BaseTimer 
 {
 public:
-    pulseTimer() {}
+    TIMER_PULSE() {}
     uint8_t update(uint8_t IN) override;
 };
 
