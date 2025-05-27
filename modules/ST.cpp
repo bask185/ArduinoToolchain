@@ -151,11 +151,11 @@ uint8_t TIMER_PULSE::update(uint8_t IN)
 
 
 /*   TRIGGERS   */
-R_trigger::R_trigger()
+R_TRIG::R_TRIG()
 {
 }
 
-void R_trigger::update( uint8 IN )
+void R_TRIG::update( uint8_t IN )
 {
     Q = 0 ;
 
@@ -166,11 +166,11 @@ void R_trigger::update( uint8 IN )
     }
 } 
 
-F_trigger::F_trigger()
+F_TRIG::F_TRIG()
 {
 }
 
-void F_trigger::update( uint8 IN )
+void F_TRIG::update( uint8_t IN )
 {
     Q = 0 ;
 
@@ -239,14 +239,14 @@ void RS::update( uint8_t S, uint8_t R )
 
 
 /***** COUNTER ****/
-void Counter::update( uint8_t IN )
+void COUNTER::update( uint8_t IN )
 {
     Q = 0 ;
 
     if( IN == 1 && old == 0 )
     {
         if( CV < 0xFFFF ) CV++ ;
-        
+
         if( CV >= PV )
         {
             Q = 1 ;
@@ -254,4 +254,45 @@ void Counter::update( uint8_t IN )
     }
 
     old = IN ;
+}
+
+COUNTER::COUNTER()
+{
+    Q   = 0 ;
+    CV  = 0 ;
+    PV  = 0 ;
+    old = 0 ;
+}
+
+void COUNTER::reset()
+{
+    CV = 0 ;
+    Q  = 0 ;
+}
+
+
+/******* RAMP GENERATOR *******/
+RAMP_GEN::RAMP_GEN()
+{
+    SP        = 0 ;
+    EN        = 0 ;
+    Y         = 0 ;
+    interval  = 0 ;
+    Q         = 0 ;
+    lastStep  = millis() ;
+}
+
+void RAMP_GEN::update()
+{
+    if( !EN ) return ;
+
+    uint32_t now = millis();
+    if( now - lastStep < interval ) return ;
+
+    lastStep = now ;
+
+    if( Y < setpoint  ) Y++ ;
+    if( Y > setpoint  ) Y-- ;
+
+    Q = ( Y == setpoint  ) ;
 }

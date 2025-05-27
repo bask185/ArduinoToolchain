@@ -67,19 +67,19 @@ public:
 
 
 /* TRIGGERS */
-class R_trigger
+class R_TRIG
 {
 public:
-    R_trigger( ) ;
+    R_TRIG( ) ;
     void  update( uint8_t ) ;
     uint8_t   Q : 1 ;
     uint8_t old : 1 ;
 } ;
 
-class F_trigger
+class F_TRIG
 {
 public:
-    F_trigger( ) ;
+    F_TRIG( ) ;
     void  update( uint8_t )  ;
     uint8_t   Q : 1 ;
     uint8_t old : 1 ;
@@ -122,32 +122,35 @@ public:
 } ;
 
 /***** COUNTER ****/
-class Counter
+class COUNTER
 {
 public:
-    Counter() ;
+    COUNTER() ;
 
     void update( uint8_t IN ) ;
     void reset() ;
 
-    uint8_t Q      : 1 ;  // overflow/compare flag
-    uint16_t CV    ;      // current value
-    uint16_t PV    ;      // preset value
-    uint8_t old    : 1 ;  // voor flankdetectie
+    uint8_t Q      : 1 ;
+    uint16_t CV    ;
+    uint16_t PV    ;
+    uint8_t old    : 1 ;
 } ;
 
-Counter::Counter()
-{
-    Q   = 0 ;
-    CV  = 0 ;
-    PV  = 0 ;
-    old = 0 ;
-}
 
-void Counter::reset()
+/******* RAMP GENERATOR *******/
+class RAMP_GEN
 {
-    CV = 0 ;
-    Q  = 0 ;
-}
+public:
+    RAMP_GEN() ;
+    void update() ;
+
+    uint16_t setpoint  ;
+    uint16_t Y ;
+    uint16_t interval ;
+    uint8_t  Q : 1 ;
+    uint32_t lastStep ;
+    uint8_t  EN ;
+} ;
+
 
 #endif
