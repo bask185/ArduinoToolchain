@@ -122,20 +122,29 @@ public:
 } ;
 
 /***** COUNTER ****/
-class COUNTER
+class BaseCounter
 {
+protected:
+    uint16_t  counter ;
+    
 public:
-    COUNTER() ;
-
-    void update( uint8_t IN ) ;
-    void reset() ;
-
-    uint8_t Q      : 1 ;
-    uint16_t CV    ;
-    uint16_t PV    ;
-    uint8_t old    : 1 ;
+    uint8_t       Q : 1;
+    BaseCounter() ;
 } ;
 
+class UP_COUNTER : public BaseCounter
+{
+public:
+    UP_COUNTER() {}
+    uint8_t count( uint8_t IN, uint16_t target ) ;
+} ;
+
+class DOWN_COUNTER : public BaseCounter
+{
+public:
+    DOWN_COUNTER() {}
+    uint8_t count( uint8_t IN, uint16_t target ) ;
+} ;
 
 /******* RAMP GENERATOR *******/
 class RAMP_GEN

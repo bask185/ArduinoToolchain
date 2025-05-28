@@ -239,42 +239,49 @@ void RS::update( uint8_t S, uint8_t R )
 
 
 /***** COUNTER ****/
-void COUNTER::update( uint8_t IN )
+BaseCounter::BaseCounter() {}
+
+uint8_t UP_COUNTER::count( uint8_t IN, uint16_t target )
 {
     Q = 0 ;
 
-    if( IN == 1 && old == 0 )
+    if( !IN )
     {
-        if( CV < 0xFFFF ) CV++ ;
-
-        if( CV >= PV )
-        {
-            Q = 1 ;
-        }
+        counter = 0 ;
     }
 
-    old = IN ;
+    else
+    {
+        if( counter  < target ) counter ++ ;
+        if( counter == target ) Q = 1 ;
+    }
+
+    return Q ;
 }
 
-COUNTER::COUNTER()
+
+uint8_t DOWN_COUNTER::count( uint8_t IN, uint16_t startPoint )
 {
-    Q   = 0 ;
-    CV  = 0 ;
-    PV  = 0 ;
-    old = 0 ;
-}
+    Q = 0 ;
 
-void COUNTER::reset()
-{
-    CV = 0 ;
-    Q  = 0 ;
-}
+    if( !IN )
+    {
+        counter = startPoint ;
+    }
 
+    else
+    {
+        if( counter  > startPoint ) counter -- ;
+        if( counter ==          0 ) Q = 1 ;
+    }
+    
+    return Q ;
+}
 
 /******* RAMP GENERATOR *******/
 RAMP_GEN::RAMP_GEN()
 {
-    SP        = 0 ;
+    setpoint  = 0 ;
     EN        = 0 ;
     Y         = 0 ;
     interval  = 0 ;
