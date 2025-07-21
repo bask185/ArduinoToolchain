@@ -16,201 +16,194 @@
 
 /*   TIMERS   */
 
-BaseTimer::BaseTimer()
+
+Timer::Timer()
 {
-    Q = 0 ;
-    PT = 0 ;
-    ET = 0 ;
+    Q = 0;
+    PT = 0;
+    ET = 0;
+    IN = 0 ;
+    startTime = 0;
+    startTrigger = true;
+    endTrigger = true;
+    type = TIMER_ON;
+}
+
+void Timer::set( uint8_t _type, uint32_t _PT )
+{   
+    type = _type ;
+    PT   =   _PT ;
+    IN   =     1 ;
 }
 
 
-uint8_t TIMER_ON::update(uint8_t IN) 
+uint8_t Timer::update( uint8_t _IN )
 {
-    Q = 0 ;
-    if( !IN )
-    {
-        ET = 0 ;
-        startTrigger = 1 ;
-        endTrigger   = 1 ;
-    }
-    else if( startTrigger )
-    {
-        startTrigger = 0 ;
-        startTime = millis() ;
-    }
-
-    if( IN )
-    {
-        ET = millis() - startTime ;
-    }
-
-    if( IN && ET >= PT && endTrigger == 1 )
-    {
-        endTrigger = 0 ;
-        Q = 1 ;
-    }
-
-    return Q ;
+    IN = _IN ;
+    return update() ;
 }
-
-
-uint8_t TIMER_OFF::update(uint8_t IN) 
+uint8_t Timer::update()
 {
-    Q = 0 ;
-    if( IN )
-    {
-        ET = 0 ;
-        startTrigger = 1 ;
-        endTrigger   = 1 ;
-    }
-    else if( startTrigger )
-    {
-        startTrigger = 0 ;
-        startTime = millis() ;
-    }
+    Q = 0;
+    uint32_t now = millis();
 
-    if( !IN )
+    switch (type)
     {
-        ET = millis() - startTime ;
-    }
-
-    if( !IN && ET >= PT && endTrigger == 1 )
+    case TIMER_ON:
+    case TIMER_OFF:
     {
-        endTrigger = 0 ;
-        Q = 1 ;
-    }
+        bool resetCondition = (type == TIMER_ON && !IN) || (type == TIMER_OFF && IN);
+        bool activeInput    = (type == TIMER_ON) ? IN : !IN;
 
-    return Q ;
-}
-
-
-uint8_t TIMER_BLEEP::update(uint8_t IN) 
-{
-    if( !IN )
-    {
-        startTime = millis() ;
-        ET = 0 ;
-    }
-
-    if( IN )
-    {
-        ET = millis() - startTime ;
-        if( ET >= PT )
+        if (resetCondition)
         {
-            startTime = millis() ;
-            ET = 0 ;
-            Q = 1 ;
+            ET = 0;
+            startTrigger = true;
+            endTrigger = true;
+        }
+        else if (startTrigger)
+        {
+            startTrigger = false;
+            startTime = now;
+        }
+
+        if (activeInput)
+        {
+            ET = now - startTime;
+        }
+
+        if (activeInput && ET >= PT && endTrigger)
+        {
+            endTrigger = false;
+            Q = 1;
+        }
+        break;
+    }
+
+    case TIMER_BLEEP:
+        if (!IN)
+        {
+            startTime = now;
+            ET = 0;
+            Q = 0;
         }
         else
         {
-            Q = 0 ;
+            ET = now - startTime;
+            if (ET >= PT)
+            {
+                startTime = now;
+                ET = 0;
+                Q = 1;
+            }
+            else
+            {
+                Q = 0;
+            }
         }
-    }
-    else
-    {
-        Q = 0 ;
-    }
+        break;
 
-    return Q ;
-}
-
-
-uint8_t TIMER_PULSE::update(uint8_t IN) 
-{
-    if( !IN )
-    {
-        startTime = millis() ;
-        endTrigger = 1 ;
-        ET = 0 ;
-    }
-
-    if( endTrigger == 1 )
-    {
-        ET = millis() - startTime ;
-        if( ET >= PT )
+    case TIMER_PULSE:
+        if (!IN)
         {
-            endTrigger = 0 ;
+            startTime = now;
+            endTrigger = true;
+            ET = 0;
         }
-    }
-    else
-    {
-        ET = 0 ;
+
+        if (endTrigger)
+        {
+            ET = now - startTime;
+            if (ET >= PT)
+            {
+                endTrigger = false;
+            }
+        }
+        else
+        {
+            ET = 0;
+        }
+
+        Q = (IN && endTrigger) ? 1 : 0;
+        break;
+
+    default:
+        Q = 0;
+        break;
     }
 
-    if( IN && endTrigger )
-    {
-        Q = 1 ;
-    }
-    else
-    {
-        Q = 0 ;
-    }
-
-    return Q ;
+    return Q;
 }
-
 
 /*   TRIGGERS   */
-R_TRIG::R_TRIG()
+
+Trigger::Trigger ()
 {
+    _toggled = 0 ; 
+    _rose    = 0 ; 
+    _fell    = 0 ; 
+    state    = 0 ; 
+    armed    = 0 ;
 }
 
-void R_TRIG::update( uint8_t IN )
+void Trigger::update( uint8_t IN )
 {
-    Q = 0 ;
+    _toggled = 0 ;
+    _rose    = 0 ;
+    _fell    = 0 ;
 
-    if( IN != old )
+    if( IN != state )
     {
-        Q   = IN ;
-        old = IN ;
-    }
-} 
+        state = IN ;
 
-F_TRIG::F_TRIG()
-{
-}
+        if ( !armed )
+        {
+            armed = 1 ;
+            return ;
+        }
 
-void F_TRIG::update( uint8_t IN )
-{
-    Q = 0 ;
-
-    if( IN != old )
-    {
-        Q   = IN ^ 1 ;
-        old = IN ;
-    }
-}
-
-C_trigger::C_trigger()
-{
-    Q   = 0 ;
-    old = 0 ;
-}
-
-void C_trigger::update( uint8_t IN )
-{
-    Q = 0 ;
-    if( IN != old )
-    {
-        Q = 1 ;
-        old = IN ;
+        _toggled = 1 ;
+        if ( IN ) _rose = 1 ;
+        else      _fell = 1 ;
     }
 }
 
-T_trigger::T_trigger()
+void Trigger::arm()
 {
-    Q   = 0 ;
-    old = 0 ;
+    armed = 1 ;
 }
 
-void T_trigger::update( uint8_t IN )
+bool Trigger::toggled()
 {
-    if( IN == 1 && old == 0 )
+    if ( _toggled )
     {
-        Q ^= 1 ;
+        _toggled = 0;
+        return 1;
     }
-    old = IN ;
+    return 0;
 }
+
+bool Trigger::rose()
+{
+    if ( _rose )
+    {
+        _rose = 0;
+        return 1;
+    }
+    return 0;
+}
+
+bool Trigger::fell()
+{
+    if ( _fell )
+    {
+        _fell = 0;
+        return 1;
+    }
+    return 0;
+}
+
+
 
 
 /***** FLIP FLOPS *****/
@@ -237,9 +230,23 @@ void RS::update( uint8_t S, uint8_t R )
     else if( R )  Q = 0 ;
 }
 
+MEM::MEM()
+{
+}
+
+void MEM::update( uint8_t IN )
+{
+    if( IN ) Q = 1 ;
+    else     Q = 0 ;
+}
 
 /***** COUNTER ****/
 BaseCounter::BaseCounter() {}
+
+uint16_t BaseCounter::getCount()
+{
+    return counter ;
+}
 
 uint8_t UP_COUNTER::count( uint8_t IN, uint16_t target )
 {
@@ -271,8 +278,8 @@ uint8_t DOWN_COUNTER::count( uint8_t IN, uint16_t startPoint )
 
     else
     {
-        if( counter  > startPoint ) counter -- ;
-        if( counter ==          0 ) Q = 1 ;
+        if( counter  > 0 ) counter -- ;
+        if( counter == 0 ) Q = 1 ;
     }
     
     return Q ;

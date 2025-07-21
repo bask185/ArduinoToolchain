@@ -16,92 +16,53 @@
 
 #include <Arduino.h>
 
-class BaseTimer 
+
+const int TIMER_ON    = 0 ;
+const int TIMER_OFF   = 1 ;
+const int TIMER_BLEEP = 2 ;
+const int TIMER_PULSE = 3 ;
+
+class Timer
 {
 public:
+    Timer();
+    void    set( uint8_t _type, uint32_t _PT ) ;
+    uint8_t update( uint8_t _IN ) ;
+    uint8_t update( ) ;
+
     uint32_t    PT ;
     uint32_t    ET ;
-    bool        Q ;
-
-    BaseTimer() ;
-    virtual uint8_t update(uint8_t IN) = 0 ;
-
-protected:
-    uint32_t    startTime ;
-    bool        startTrigger ;
-    bool        endTrigger ;
-} ;
-
-
-class TIMER_ON : public BaseTimer 
-{
-public:
-    TIMER_ON() {}
-    uint8_t update(uint8_t IN) override;
-};
-
-
-class TIMER_OFF : public BaseTimer 
-{
-public:
-    TIMER_OFF() {}
-    uint8_t update(uint8_t IN) override;
-};
-
-
-class TIMER_BLEEP : public BaseTimer 
-{
-public:
-    TIMER_BLEEP() {}
-    uint8_t update(uint8_t IN) override;
-};
-
-
-class TIMER_PULSE : public BaseTimer 
-{
-public:
-    TIMER_PULSE() {}
-    uint8_t update(uint8_t IN) override;
+    uint32_t    startTime;
+    
+    uint8_t     type         : 2 ;    
+    uint8_t     startTrigger : 1 ;
+    uint8_t     endTrigger   : 1 ;
+    uint8_t     Q            : 1 ;
+    uint8_t     IN           : 1 ;
 };
 
 
 
 /* TRIGGERS */
-class R_TRIG
-{
-public:
-    R_TRIG( ) ;
-    void  update( uint8_t ) ;
-    uint8_t   Q : 1 ;
-    uint8_t old : 1 ;
-} ;
 
-class F_TRIG
+class Trigger
 {
-public:
-    F_TRIG( ) ;
-    void  update( uint8_t )  ;
-    uint8_t   Q : 1 ;
-    uint8_t old : 1 ;
-} ;
+  public:
+    Trigger();
 
-class C_trigger
-{
-public:
-    C_trigger() ;
-    void update( uint8_t IN ) ;
-    uint8_t Q : 1 ;
-    uint8_t old : 1 ;
-} ;
+    void update( uint8_t input );
 
-class T_trigger
-{
-public:
-    T_trigger() ;
-    void update( uint8_t IN ) ;
-    uint8_t Q : 1 ;
-    uint8_t old : 1 ;
-} ;
+    bool rose();
+    bool fell();
+    bool toggled(); 
+    void arm() ;
+
+    uint8_t state    : 1;
+    uint8_t armed    : 1;
+    uint8_t _toggled : 1;
+    uint8_t _rose    : 1;
+    uint8_t _fell    : 1;
+};
 
 /*****  FLIP FLOPS ******/
 class SR
@@ -121,6 +82,14 @@ public:
     uint8_t Q : 1 ;
 } ;
 
+class MEM 
+{
+public:
+    MEM() ;
+    void update( uint8_t IN ) ;
+    uint8_t Q : 1 ;
+} ;
+
 /***** COUNTER ****/
 class BaseCounter
 {
@@ -130,6 +99,7 @@ protected:
 public:
     uint8_t       Q : 1;
     BaseCounter() ;
+    uint16_t  getCount() ;
 } ;
 
 class UP_COUNTER : public BaseCounter

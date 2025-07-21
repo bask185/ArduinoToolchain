@@ -35,7 +35,7 @@ def getStateMachines() : # function tested!
     else:
         slash = '/'
 
-    type = "." + slash +"stateMachines"
+    type = "." + slash + "stateMachines"
 
     for root, dirs, fileList in os.walk(".", topdown=False):
         if root == type :
