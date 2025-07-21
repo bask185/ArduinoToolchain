@@ -17,10 +17,11 @@
 #include <Arduino.h>
 
 
-const int TIMER_ON    = 0 ;
-const int TIMER_OFF   = 1 ;
-const int TIMER_BLEEP = 2 ;
-const int TIMER_PULSE = 3 ;
+const int TIMER_ON     = 0 ;
+const int TIMER_OFF    = 1 ;
+const int TIMER_BLEEP  = 2 ;
+const int TIMER_PULSE  = 3 ;
+const int TIMER_TOGGLE = 4 ;
 
 class Timer
 {
@@ -34,7 +35,7 @@ public:
     uint32_t    ET ;
     uint32_t    startTime;
     
-    uint8_t     type         : 2 ;    
+    uint8_t     type         : 3 ;    
     uint8_t     startTrigger : 1 ;
     uint8_t     endTrigger   : 1 ;
     uint8_t     Q            : 1 ;

@@ -42,9 +42,9 @@ uint8_t Timer::update( uint8_t _IN )
     IN = _IN ;
     return update() ;
 }
+
 uint8_t Timer::update()
 {
-    Q = 0;
     uint32_t now = millis();
 
     switch (type)
@@ -52,6 +52,7 @@ uint8_t Timer::update()
     case TIMER_ON:
     case TIMER_OFF:
     {
+        Q = 0 ;
         bool resetCondition = (type == TIMER_ON && !IN) || (type == TIMER_OFF && IN);
         bool activeInput    = (type == TIMER_ON) ? IN : !IN;
 
@@ -127,6 +128,33 @@ uint8_t Timer::update()
         Q = (IN && endTrigger) ? 1 : 0;
         break;
 
+    case TIMER_TOGGLE:
+        if (!IN)
+        {
+            startTrigger = true;
+            startTime = now;
+            ET = 0;
+        }
+        else
+        {
+            if (startTrigger)
+            {
+                startTrigger = false;
+                startTime = now;
+                ET = 0;
+            }
+
+            ET = now - startTime;
+
+            if (ET >= PT)
+            {
+                Q = !Q;
+                startTime = now;
+                ET = 0;
+            }
+        }
+        break;
+
     default:
         Q = 0;
         break;
@@ -134,6 +162,7 @@ uint8_t Timer::update()
 
     return Q;
 }
+
 
 /*   TRIGGERS   */
 
