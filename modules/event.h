@@ -56,7 +56,7 @@ public:
     void    startPlaying() ;
     void    stopPlaying() ;
     void    resetProgram() ;
-    void    sendFeedbackEvent( uint16 ) ;
+    void    sendFeedbackEvent( uint16, uint8 ) ;
     void    update() ;
     void    begin() ;
     void    storeEvent( uint8, uint16, uint8 ) ;
@@ -73,6 +73,7 @@ private:
     uint32  maxAddress ;
     uint32  prevTime ;
     uint16  newSensor ;
+    uint8   newState ;
     uint8   recordingDevice ;
     uint8   eepromType ;
 };

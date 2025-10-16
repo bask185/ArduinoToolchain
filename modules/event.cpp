@@ -68,7 +68,7 @@ Event EventHandler::getEvent()
     if( eepromType == INTERNAL_EEPROM ) {            EEPROM.get( eeAddress, localEvent ) ; }
     else                                { error = i2cEeprom.get( eeAddress, localEvent ) ; }
     
-    //if(notifyI2cErrror) notifyI2cErrror( error ) ;
+    if(notifyI2cErrror) notifyI2cErrror( error ) ;
 
     if( displayGetMemory ) displayGetMemory( eeAddress ) ;
 
@@ -122,9 +122,9 @@ void EventHandler::storeEvent( uint8 _data1, uint16 _data2, uint8 _data3 )
     localEvent.data2 = _data2 ;
     localEvent.data3 = _data3 ;
 
-    if(      _data1 == FEEDBACK )                    { localEvent.time2nextEvent = 0 ; }                       // feedback has 0 time -> wait until sensor is made...
-    else if( _data1 == START ||  _data1 == STOP )    { localEvent.time2nextEvent = 1 ; }   
-    else                                             { localEvent.time2nextEvent = currTime - prevTime ; }
+    if(      _data1 == FEEDBACK ) { localEvent.time2nextEvent = 0 ; }                       // feedback has 0 time -> wait until sensor is made...
+    else if( _data1 == START )    { localEvent.time2nextEvent = 1 ; }                       // start event happens immediately
+    else                          { localEvent.time2nextEvent = currTime - prevTime ; }     // all other events, including STOP, use real interval
 
     prevTime = currTime ;
     byte error ;
@@ -132,8 +132,8 @@ void EventHandler::storeEvent( uint8 _data1, uint16 _data2, uint8 _data3 )
     if( eepromType == INTERNAL_EEPROM ) {            EEPROM.put( eeAddress, localEvent ) ; }
     else                                { error = i2cEeprom.put( eeAddress, localEvent ) ; }
     
-    //if(notifyI2cErrror)                         notifyI2cErrror( error ) ; gets me error 4 which is kinda annoying, better to turn this one off
-    if( displayStoreMemory )                    displayStoreMemory( eeAddress ) ;
+    if(notifyI2cErrror)                         notifyI2cErrror( error ) ; gets me error 4 which is kinda annoying, better to turn this one off
+    //if( displayStoreMemory )                    displayStoreMemory( eeAddress ) ;
     if( displayFreeMemory  )                    displayFreeMemory( ( (0x2000 - eeAddress - beginAddress) / sizeof( localEvent ) ) ) ;
     if( eeAddress == maxAddress && memoryFull ) memoryFull() ;
 
@@ -141,11 +141,13 @@ void EventHandler::storeEvent( uint8 _data1, uint16 _data2, uint8 _data3 )
 }
 
 
-void EventHandler::sendFeedbackEvent( uint16 number )
+
+void EventHandler::sendFeedbackEvent( uint16 number, uint8 state )
 {
     if( recordingDevice == playing || recordingDevice == finishing )
     {
         newSensor = number ;
+        newState  = state ;
     }
 }
 
@@ -157,12 +159,13 @@ void EventHandler::update()
     &&  (currTime - prevTime) >= event.time2nextEvent )
     {
 
-        if( event.time2nextEvent == 0 )                                         
+        if( event.time2nextEvent == 0 )
         {
-            if( newSensor == event.data2 ) event.time2nextEvent = 1 ; // MAY CONTAIN BUG?? VERIVIED, START EVENT MAY NOT BE OK
+            if( newSensor == event.data2 && newState == event.data3 )
+                event.time2nextEvent = 1 ;
             return ;
         }
-                                       //    8bit         16bit        8bit       // for here and now, data1, is type, data2 is address and data 3 just data.
+
         if( notifyEvent ) notifyEvent( event.data1, event.data2, event.data3 ) ;
 
         prevTime = currTime ;
@@ -172,7 +175,6 @@ void EventHandler::update()
             if( recordingDevice == finishing )
             {
                 recordingDevice = idle ;
-                if( notifyEvent ) notifyEvent( STOP, 1, 1 ) ;
                 return ;
             }
             else
