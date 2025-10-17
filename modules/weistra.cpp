@@ -36,17 +36,19 @@ Weistra::Weistra(uint8_t _pin1, uint8_t _pin2, uint8_t _Fmin, uint8_t _Fmax )
 void Weistra::begin()
 {
     pinMode(trackPin1, OUTPUT);
-    pinMode(trackPin2, OUTPUT);
-
+    
     uint8_t port1 = digitalPinToPort( trackPin1 );
     trackPin1     = digitalPinToBitMask( trackPin1 );
     portx_p1      = portOutputRegister( port1 );
-
+    
     if( trackPin2 != 255 )
     {
+        pinMode(trackPin2, OUTPUT);
         uint8_t port2 = digitalPinToPort( trackPin2 );
         trackPin2     = digitalPinToBitMask( trackPin2 );
         portx_p2      = portOutputRegister( port2 );
+    } else {
+        portx_p2 = nullptr;
     }
 
     state = 1 ;
@@ -56,6 +58,7 @@ void Weistra::begin()
 void Weistra::setCurrentSense( uint8_t _sensePin, uint8_t _currentLimit )
 {
     sensePin = _sensePin ;
+    pinMode( sensePin, INPUT ) ;
     currentLimit = _currentLimit ;
 }
 
@@ -71,12 +74,12 @@ void Weistra::update()
             if( !state )
             {
                 *portx_p1 &= ~trackPin1;
-                *portx_p2 &= ~trackPin2;
+                if( portx_p2 ) *portx_p2 &= ~trackPin2;
             }
             else if( counter == 0 && newDutyCycle > 0 )      // if counter reaches 100, reset it to 0 and enable the track power pin
             {
-                if(dir) *portx_p1 |=  trackPin1 ;
-                else    *portx_p2 |=  trackPin2 ;
+                if(dir)             *portx_p1 |=  trackPin1 ;
+                else if( portx_p2 ) *portx_p2 |=  trackPin2 ;
 
                 dutyCycle = newDutyCycle ;              // a new dutycucle can only be accepted on the beginning of a cycle, this prevents weird jumps of the trains
                 intervalTime = newIntervalTime ;        // new speed is accepted at the beginning of a cycle
@@ -84,34 +87,39 @@ void Weistra::update()
             if( counter == dutyCycle /*&& dutyCycle < 100*/ ) // commented code seems buggy??
             {
                 *portx_p1 &= ~trackPin1;
-                *portx_p2 &= ~trackPin2;
+                if( portx_p2 ) *portx_p2 &= ~trackPin2;
             }
             if( ++counter > 100) counter = 0 ;
         }
 
-        if( sensePin != 255 )
+        if (sensePin != 255)
         {
-            int current = analogRead( sensePin ) ;
+            int current = analogRead(sensePin);
 
-            if( millis() - prevTime2 > interval 
-            && (*portx_p1 & trackPin1 || *portx_p2 & trackPin2 || !state ) )
-            {     prevTime2 = millis() ;
+            const bool p1On         = ((*portx_p1 & trackPin1) != 0);
+            const bool p2On         = (portx_p2 && ((*portx_p2 & trackPin2) != 0));
+            const bool outputOn     = (p1On || p2On);
+            const bool shouldSample = (outputOn || !state);
 
-                if( state ) // if on
+            if ((millis() - prevTime2 > interval) && shouldSample)
+            {
+                prevTime2 = millis();
+
+                if (state)  // ON: bewaak stroom en eventueel afschakelen
                 {
-                    if( current > currentLimit ) currentCounter -- ;
-                    else                         currentCounter = 5 ;
-
-                    if( currentCounter == 0 )
+                    if (current > currentLimit) { if (currentCounter > 0) currentCounter-- ; }  // voorkom onderflow
+                    else {                                                currentCounter = 5; }
+                    
+                    if (currentCounter == 0)
                     {
-                        setState( 0 ) ;
-                        interval = 5000 ; // 5s power off
+                        setState( 0 ) ;        // OFF
+                        interval = 5000 ;    // 5s cooldown
                     }
                 }
-                else        // if off
+                else
                 {
-                    setState( 1 ) ; // turn on again
-                    interval = sampleRate ; // set sample rate 
+                    setState( 1 ) ;
+                    interval = sampleRate ;
                     currentCounter = 2 ;
                 }
             }
@@ -162,45 +170,3 @@ uint8_t Weistra::getState( )
     return state ;
 }
 
-
-
-void updateTrackPower()
-{
-    uint32_t currentTime = micros() ; 
-
-    if( currentTime - prevTime >= 200 )     // 50 HZ
-    {   prevTime = currentTime;
-
-        if( !state )
-        {
-            PORTB = 0x00 ;                              // turn off all track pins at once
-            PORTD = 0x00 ;
-        }
-        else if( counter == 0 && newDutyCycle > 0 )    // if counter reaches 100, reset it to 0 and enable the track power pin, begin of cycle
-        {
-            PORTB = 0xFF & track_mask_1 ;              // turn on ALL track at the same time.
-            PORTD = 0xFF & track_mask_2 ;              // With an AND mask you can pick which tracks go ON and which go OFF
-            // etc 
-
-            dutyCycle[0] = newDutyCycle[0] ; 
-            dutyCycle[1] = newDutyCycle[0] ; 
-            dutyCycle[0] = newDutyCycle[0] ; 
-        }
-        if( counter == dutyCycle[0] )  PORTB &= ~TRACK_1_MASK ; // 8 bit comparison are somewhat fast, followed by direct port manipulation
-        if( counter == dutyCycle[1] )  PORTB &= ~TRACK_2_MASK ;
-        if( counter == dutyCycle[2] )  PORTB &= ~TRACK_3_MASK ;
-        if( counter == dutyCycle[3] )  PORTB &= ~TRACK_4_MASK ;
-        if( counter == dutyCycle[4] )  PORTB &= ~TRACK_5_MASK ;
-        if( counter == dutyCycle[5] )  PORTB &= ~TRACK_6_MASK ;
-
-        if( counter == dutyCycle[6] )  PORTD &= ~TRACK_7_MASK ;
-        if( counter == dutyCycle[7] )  PORTD &= ~TRACK_8_MASK ;
-        if( counter == dutyCycle[8] )  PORTD &= ~TRACK_9_MASK ;
-        if( counter == dutyCycle[9] )  PORTD &= ~TRACK_10_MASK ;
-        if( counter == dutyCycle[10] ) PORTD &= ~TRACK_11_MASK ;
-        if( counter == dutyCycle[11] ) PORTD &= ~TRACK_12_MASK ;
-
-        
-        if( ++counter > 100) counter = 0 ;  // 100 speed steps
-    }
-}
