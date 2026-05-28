@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # Purpose:
 # - Initialize a local Git repo
 # - Create a minimal commit with README.md and .gitignore only (no 'git add --all')
@@ -43,7 +43,15 @@ def ensure_git_repo():
         run(["git", "init"])
 
 def ensure_branch_master():
+    # check if there is ANY commit
+    res = run(["git", "rev-parse", "--verify", "HEAD"], check=False)
+    if res.returncode != 0:
+        # no commit yet → cannot rename branch
+        return
+    
+    # rename branch to master
     run(["git", "branch", "-M", DEFAULT_BRANCH])
+
 
 def ensure_tag(tag: str):
     res = run(["git", "tag", "--list", tag], check=False)
@@ -121,7 +129,7 @@ def create_remote_and_push(repo_name: str):
 
 def main():
     ensure_git_repo()
-    ensure_branch_master()
+
 
     # Create minimal README and .gitignore
     write_file(Path("README.md"), f"# {repo_name_from_cwd()}\n\nInitial repository skeleton.\n")
@@ -129,6 +137,7 @@ def main():
 
     # Only add README.md and .gitignore, then commit
     stage_and_commit()
+    ensure_branch_master()
 
     # Ensure tag exists locally
     ensure_tag(TAG)

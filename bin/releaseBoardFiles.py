@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 import os
 import sys
 import shutil
@@ -37,25 +37,38 @@ def try_remove_file_or_dir(path):
     except Exception as e:
         fail("Kon " + str(path) + " niet verwijderen: " + str(e))
 
-def main():
-    hardware_dir = Path.cwd().resolve()
-    project_dir = hardware_dir.parent
-    releases_dir = project_dir / "releases"
-    releases_dir.mkdir(exist_ok=True)
+def find_repo_root(path: Path) -> Path:
+    """Walk up from path until we find the folder named 'hardware', then return its parent."""
+    current = path.resolve()
+    while current != current.parent:
+        if current.name == "hardware":
+            return current.parent
+        current = current.parent
+    return path.resolve()   # fallback: couldn't find hardware/ in ancestry
 
-    for production_dir in hardware_dir.glob("**/jlcpcb/production_files"):
+def main():
+    sys.stdout.reconfigure(encoding='utf-8')
+    start_dir = Path.cwd().resolve()
+
+    for production_dir in start_dir.glob("**/jlcpcb/production_files"):
         if not production_dir.is_dir():
             continue
 
-        jlcpcb_dir = production_dir.parent
+        jlcpcb_dir     = production_dir.parent
         subproject_dir = jlcpcb_dir.parent
 
+        # Derive releases/ per repo, not once from cwd
+        repo_root    = find_repo_root(jlcpcb_dir)
+        releases_dir = repo_root / "releases"
+        releases_dir.mkdir(exist_ok=True)
+
         # project_name = folder waarin jlcpcb zit (subproject of hardware zelf)
+        hardware_dir = repo_root / "hardware"
         try:
             relative = jlcpcb_dir.relative_to(hardware_dir)
-            project_name = relative.parts[0] if len(relative.parts) > 0 else "hardware"
+            project_name = relative.parts[0] if len(relative.parts) > 0 else hardware_dir.parent.name
         except ValueError:
-            project_name = "unknown"
+            project_name = repo_root.name
 
         info("Verwerken: " + project_name)
 
